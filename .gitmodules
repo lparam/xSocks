@@ -1,0 +1,9 @@
+[submodule "3rd/libuv"]
+	path = 3rd/libuv
+	url = https://github.com/libuv/libuv
+[submodule "3rd/libsodium"]
+	path = 3rd/libsodium
+	url = https://github.com/jedisct1/libsodium
+[submodule "3rd/c-ares"]
+	path = 3rd/c-ares
+	url = https://github.com/bagder/c-ares

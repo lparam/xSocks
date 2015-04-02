@@ -1,0 +1,26 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006-2014 OpenWrt.org
+
+START=72
+STOP=30
+FIREWALL_RELOAD=0
+SERVER=server:port
+PASSWORD=password
+
+start() {
+    xsocks -l 0.0.0.0:1080 -s $SERVER -k $PASSWORD -n -V
+    xtproxy -l 0.0.0.0:1070 -s $SERVER -k $PASSWORD -n -V
+    xforwarder -l localhost:5533 -t 8.8.8.8:53 -s $SERVER -k $PASSWORD -n -V
+}
+
+stop() {
+    xsocks --signal stop
+    xtproxy --signal stop
+    xforwarder --signal stop
+}
+
+shutdown() {
+    xsocks --signal quit
+    xtproxy --signal quit
+    xforwarder --signal quit
+}
