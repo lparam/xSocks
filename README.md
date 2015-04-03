@@ -22,6 +22,7 @@ make && sudo make install
 # At OpenWRT build root
 cd package
 git clone https://github.com/xsocks/xsocks.git
+cd ..
 
 # Build the package
 make package/xsocks/openwrt/compile
