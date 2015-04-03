@@ -25,21 +25,21 @@ BUILD_DIR := $(shell cd $(BUILD_DIR) && /bin/pwd)
 $(if $(BUILD_DIR),,$(error output directory "$(saved-output)" does not exist))
 endif # ifneq ($(BUILD_DIR),)
 
+INSTALL_DIR := /usr/local/bin
+
 OBJTREE		:= $(if $(BUILD_DIR),$(BUILD_DIR),$(CURDIR))
 SRCTREE		:= $(CURDIR)
-TOPDIR		:= $(SRCTREE)
-export TOPDIR SRCTREE OBJTREE
+export SRCTREE OBJTREE
 
 #########################################################################
-
-# CROSS_COMPILE = mips-openwrt-linux-
 
 ifdef CROSS
 CROSS_COMPILE = $(CROSS)
 endif
 
 ifdef CROSS_COMPILE
-CPPFLAGS += -DCROSS_COMPILE
+CPPFLAGS = -DCROSS_COMPILE
+HOST = $(patsubst %-,%,$(CROSS_COMPILE))
 endif
 
 CFLAGS = \
@@ -48,9 +48,7 @@ CFLAGS = \
 	-Wall \
 	$(PLATFORM_CFLAGS)
 
-CFLAGS += -ffunction-sections -fdata-sections
-#CFLAGS += -g
-
+CFLAGS += -fomit-frame-pointer -fdata-sections -ffunction-sections
 EXTRA_CFLAGS =
 
 #########################################################################
@@ -63,16 +61,20 @@ LDFLAGS += -pthread -ldl -lrt
 LDFLAGS += 3rd/libuv/.libs/libuv.a 3rd/libsodium/src/libsodium/.libs/libsodium.a
 
 #########################################################################
-include $(TOPDIR)/config.mk
+include $(SRCTREE)/config.mk
 #########################################################################
 
+ifndef CROSS_COMPILE
 all: libuv libsodium c-ares xsocksd xsocks xtproxy xforwarder xtunnel
+else
+all: libuv libsodium xsocks xtproxy xforwarder xtunnel
+endif
 
 3rd/libuv/autogen.sh:
 	$(Q)git submodule update --init
 
 3rd/libuv/Makefile: | 3rd/libuv/autogen.sh
-	$(Q)cd 3rd/libuv && ./autogen.sh && ./configure --host=$(patsubst %-,%,$(CROSS_COMPILE)) && $(MAKE)
+	$(Q)cd 3rd/libuv && ./autogen.sh && ./configure --host=$(HOST) LDFLAGS= && $(MAKE)
 
 libuv: 3rd/libuv/Makefile
 
@@ -80,7 +82,7 @@ libuv: 3rd/libuv/Makefile
 	$(Q)git submodule update --init
 
 3rd/libsodium/Makefile: | 3rd/libsodium/autogen.sh
-	$(Q)cd 3rd/libsodium && ./autogen.sh && ./configure --host=$(patsubst %-,%,$(CROSS_COMPILE)) && $(MAKE)
+	$(Q)cd 3rd/libsodium && ./autogen.sh && ./configure --host=$(HOST) LDFLAGS= && $(MAKE)
 
 libsodium: 3rd/libsodium/Makefile
 
@@ -88,7 +90,7 @@ libsodium: 3rd/libsodium/Makefile
 	$(Q)git submodule update --init
 
 3rd/c-ares/Makefile: | 3rd/c-ares/configure
-	$(Q)cd 3rd/c-ares && ./buildconf && ./configure --host=$(patsubst %-,%,$(CROSS_COMPILE)) && $(MAKE)
+	$(Q)cd 3rd/c-ares && ./buildconf && ./configure --host=$(HOST) LDFLAGS= && $(MAKE) MAKEFLAGS=-rRs
 
 c-ares: 3rd/c-ares/Makefile
 
@@ -178,9 +180,13 @@ distclean: clean
 	$(Q)cd 3rd/libuv && make distclean
 	$(Q)cd 3rd/c-ares && make distclean
 
+ifndef CROSS_COMPILE
 install:
-	$(Q)cp xsocksd /usr/local/bin
-	$(Q)cp xsocks /usr/local/bin
-	$(Q)cp xtproxy /usr/local/bin
-	$(Q)cp xforwarder /usr/local/bin
-	$(Q)cp xtunnel /usr/local/bin
+	$(Q)cp xsocksd $(INSTALL_DIR)
+	$(Q)cp xsocks $(INSTALL_DIR)
+	$(Q)cp xtproxy $(INSTALL_DIR)
+	$(Q)cp xforwarder $(INSTALL_DIR)
+	$(Q)cp xtunnel $(INSTALL_DIR)
+else
+install:
+endif
