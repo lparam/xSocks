@@ -32,6 +32,7 @@
 *.dSYM/
 
 *.swp
+*.pid
 /xsocksd
 /xsocks
 /xtproxy
