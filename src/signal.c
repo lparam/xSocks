@@ -15,7 +15,7 @@
 
 
 static ssize_t
-read_file(int fd, u_char *buf, size_t size, off_t offset) {
+read_file(int fd, uint8_t *buf, size_t size, off_t offset) {
 #ifdef CROSS_COMPILE
     extern ssize_t pread(int fd, void *buf, size_t count, off_t offset);
 #endif
@@ -28,7 +28,7 @@ read_file(int fd, u_char *buf, size_t size, off_t offset) {
 
 static int32_t
 get_pid(const char *pidfile) {
-    u_char    buf[10];
+    uint8_t   buf[10] = {0};
     ssize_t   n;
 
     int fd = open(pidfile, O_RDONLY);
