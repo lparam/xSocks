@@ -31,7 +31,7 @@ already_running(const char *pidfile) {
 
     fd = open(pidfile, O_RDWR | O_CREAT, LOCKMODE);
 	if (fd < 0) {
-		logger_log(LOG_ERR, "open \"%s\" failed (%d: %s)", pidfile, errno, strerror(errno));
+		logger_stderr("open \"%s\" failed (%d: %s)", pidfile, errno, strerror(errno));
 		exit(1);
 	}
 	if (lockfile(fd) < 0) {
@@ -39,7 +39,7 @@ already_running(const char *pidfile) {
 			close(fd);
 			return(1);
 		}
-		logger_log(LOG_ERR, "can't lock %s: %s\n", pidfile, strerror(errno));
+		logger_stderr("can't lock %s: %s\n", pidfile, strerror(errno));
 		exit(1);
 	}
 
