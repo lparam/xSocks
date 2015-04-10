@@ -53,7 +53,7 @@ xsocksd --signal stop
 ```bash
 xsocks -s SERVER:PORT -k PASSWORD
 xforwarder -s SERVER:PORT -k PASSWORD -t TARGET:PORT
-xtunnel -m client -k PASSWORD
+xtunnel -m client -k PASSWORD -t TARGET:PORT
 ```
 
 ### Transparent Proxy
@@ -61,6 +61,7 @@ xtunnel -m client -k PASSWORD
 Proxy all tcp traffic and udp packet transparently on gateway.
 
 ```bash
+root@OpenWrt:~# opkg install iptables-mod-tproxy
 root@OpenWrt:~# xtproxy -s SERVER:PORT -k PASSWORD
 ```
 
