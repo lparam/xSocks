@@ -31,8 +31,10 @@
 # Debug files
 *.dSYM/
 
+tags
 *.swp
 *.pid
+
 /xsocksd
 /xsocks
 /xtproxy

@@ -56,7 +56,7 @@ signal_process(char *signal, const char *pidfile) {
 
     pid = get_pid(pidfile);
     if (pid == -1) {
-		logger_log(LOG_ERR, "open \"%s\" failed (%d: %s)", pidfile, errno, strerror(errno));
+		logger_stderr("open \"%s\" failed (%d: %s)", pidfile, errno, strerror(errno));
         return 1;
     }
 
@@ -65,14 +65,14 @@ signal_process(char *signal, const char *pidfile) {
             unlink(pidfile);
             return 0;
         } else {
-            logger_log(LOG_ERR, "stop socksd failed (%d: %s)", errno, strerror(errno));
+            logger_stderr("stop socksd failed (%d: %s)", errno, strerror(errno));
         }
     }
     if (strcmp(signal, "quit") == 0) {
         if (kill(pid, SIGQUIT) != -1) {
             return 0;
         } else {
-            logger_log(LOG_ERR, "quit socksd failed (%d: %s)", errno, strerror(errno));
+            logger_stderr("quit socksd failed (%d: %s)", errno, strerror(errno));
         }
     }
 

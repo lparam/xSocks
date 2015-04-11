@@ -359,20 +359,18 @@ udprelay_init() {
 int
 udprelay_start(uv_loop_t *loop, struct server_context *server) {
     int rc;
-    uv_os_fd_t sock;
 
     uv_udp_init(loop, &server->udp);
+
+    if ((rc = uv_udp_open(&server->udp, server->udp_fd))) {
+        logger_stderr("udp open error: %s", uv_strerror(rc));
+        return 1;
+    }
 
     rc = uv_udp_bind(&server->udp, server->local_addr, UV_UDP_REUSEADDR);
     if (rc) {
         logger_stderr("bind error: %s", uv_strerror(rc));
         return 1;
-    }
-
-    uv_fileno((uv_handle_t *)&server->udp, &sock);
-    int yes = 1;
-    if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes))) {
-        logger_stderr("setsockopt error: %s", strerror(errno));
     }
 
     uv_udp_recv_start(&server->udp, client_alloc_cb, client_recv_cb);

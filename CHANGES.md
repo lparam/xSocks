@@ -1,3 +1,9 @@
+v0.1.3 (2015-4-11)
+-----------
+* Fix: Don't support MultiThreading if SO_REUSEPORT undeclared
+* Change: Default listen port
+
+
 v0.1.2 (2015-4-10)
 -----------
 * Fix: Issue 1# that unknown type in clang

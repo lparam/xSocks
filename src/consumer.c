@@ -69,6 +69,11 @@ consumer_start(void *arg) {
     uv_loop_t loop;
     struct server_context *server = arg;
 
+#ifndef SO_REUSEPORT
+    logger_stderr("don't support SO_REUSEPORT");
+    exit(1);
+#endif
+
 #ifndef CROSS_COMPILE
     char name[24] = {0};
     sprintf(name, "consumer-%d", server->index + 1);

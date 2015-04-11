@@ -16,7 +16,7 @@
 
 static int daemon_mode = 1;
 static int concurrency = 0;
-static char *local_addr = "0.0.0.0:1070";
+static char *local_addr = "0.0.0.0:5533";
 static char *server_addr_buf;
 static char *pidfile = "xforwarder.pid";
 static char *password = NULL;
@@ -47,7 +47,7 @@ print_usage(const char *prog) {
     puts("  -s <server address>\t : server address:port\n"
          "  -t <destination>\t : destination address:port\n"
          "  -k <password>\t\t : password of server\n"
-         "  [-l <bind address>]\t : bind address:port default(0.0.0.0:1070)\n"
+         "  [-l <bind address>]\t : bind address:port default(0.0.0.0:5533)\n"
          "  [-c <concurrency>]\t : worker threads\n"
          "  [-p <pidfile>]\t : pid file path (default: ./xforwarder.pid)\n"
          "  [--signal <signal>]\t : send signal to xforwarder: quit, stop\n"
