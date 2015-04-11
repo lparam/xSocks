@@ -180,10 +180,12 @@ create_socket(int type, int reuse) {
         return -1;
     }
     if (reuse) {
+#ifdef SO_REUSEPORT
         int yes = 1;
         if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes))) {
             logger_stderr("setsockopt SO_REUSEPORT error: %s", strerror(errno));
         }
+#endif
     }
     return sock;
 }
