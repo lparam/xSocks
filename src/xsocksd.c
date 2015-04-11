@@ -48,7 +48,7 @@ print_usage(const char *prog) {
     printf("Usage: %s [-l bind] <-k password> [-p pidfile] [-c concurrency] [-t timeout] [-s signal] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -k <password>\t\t : password of server\n"
-         "  [-l <bind address>]\t : bind address:port default(0.0.0.0:1082)\n"
+         "  [-l <bind address>]\t : bind address:port default(0.0.0.0:1073)\n"
          "  [-c <concurrency>]\t : worker threads\n"
          "  [-d <dns>]\t\t : name servers for internal DNS resolver\n"
          "  [-p <pidfile>]\t : pid file path (default: ./xsocksd.pid)\n"
