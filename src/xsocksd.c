@@ -22,7 +22,7 @@ static int concurrency;
 static int nameserver_num;
 static char *nameservers[MAX_DNS_NUM + 1];
 static char *local_addrbuf = "0.0.0.0:1073";
-static char *pidfile = "xsocksd.pid";
+static char *pidfile = "/var/run/xsocks/xsocksd.pid";
 static char *password;
 static char *xsignal;
 struct signal_ctx signals[3];
@@ -48,10 +48,10 @@ print_usage(const char *prog) {
     printf("Usage: %s [-l bind] <-k password> [-p pidfile] [-c concurrency] [-t timeout] [-s signal] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -k <password>\t\t : password of server\n"
-         "  [-l <bind address>]\t : bind address:port default(0.0.0.0:1073)\n"
+         "  [-l <bind address>]\t : bind address:port (default: 0.0.0.0:1073)\n"
          "  [-c <concurrency>]\t : worker threads\n"
          "  [-d <dns>]\t\t : name servers for internal DNS resolver\n"
-         "  [-p <pidfile>]\t : pid file path (default: ./xsocksd.pid)\n"
+         "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xsocksd.pid)\n"
          "  [-t <timeout>]\t : connection timeout in senconds\n"
          "  [--signal <signal>]\t : send signal to xsocksd: quit, stop\n"
          "  [-n]\t\t\t : non daemon mode\n"

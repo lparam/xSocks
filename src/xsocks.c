@@ -18,7 +18,7 @@ static int daemon_mode = 1;
 static int concurrency = 0;
 static char *local_addr = "0.0.0.0:1080";
 static char *server_addr_buf;
-static char *pidfile = "xsocks.pid";
+static char *pidfile = "/var/run/xsocks/xsocks.pid";
 static char *password = NULL;
 static char *xsignal;
 static struct signal_ctx signals[3];
@@ -46,9 +46,9 @@ print_usage(const char *prog) {
     printf("Options:\n");
     puts("  -s <server address>\t : server address:port\n"
          "  -k <password>\t\t : password of server\n"
-         "  [-l <bind address>]\t : bind address:port default(0.0.0.0:1080)\n"
+         "  [-l <bind address>]\t : bind address:port (default: 0.0.0.0:1080)\n"
          "  [-c <concurrency>]\t : worker threads\n"
-         "  [-p <pidfile>]\t : pid file path (default: ./xsocks.pid)\n"
+         "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xsocks.pid)\n"
          "  [--signal <signal>]\t : send signal to xsocks: quit, stop\n"
          "  [-n]\t\t\t : non daemon mode\n"
          "  [-h, --help]\t\t : this help\n"

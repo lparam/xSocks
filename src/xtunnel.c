@@ -20,7 +20,7 @@ static char *tunnel_mode;
 static char *source_addr = "0.0.0.0:1022";
 static char *dest_addr;
 static char *password = NULL;
-static char *pidfile = "xtunnel.pid";
+static char *pidfile = "/var/run/xsocks/xtunnel.pid";
 static char *xsignal;
 static struct signal_ctx signals[3];
 
@@ -48,10 +48,10 @@ print_usage(const char *prog) {
     printf("Options:\n");
     puts(""
          "  -m <mode>\t\t : client, server\n"
-         "  -l <local>\t\t : local address:port default(0.0.0.0:1022)\n"
+         "  -l <local>\t\t : local address:port (default: 0.0.0.0:1022)\n"
          "  -t <target>\t\t : target address:port\n"
          "  -k <password>\t\t : password of server\n"
-         "  [-p pidfile]\t\t : pid file path (default: ./xtunnel.pid)\n"
+         "  [-p pidfile]\t\t : pid file path (default: /var/run/xsocks/xtunnel.pid)\n"
          "  [-c concurrency]\t : worker threads\n"
 	     "  [-s signal]\t\t : send signal to xtunnel: quit, stop\n"
 	     "  [-n]\t\t\t : non daemon mode\n"

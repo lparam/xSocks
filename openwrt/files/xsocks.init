@@ -8,6 +8,7 @@ SERVER=IP:PORT
 PASSWORD=PASSWORD
 
 start() {
+    mkdir -p /var/run/xsocks
     xsocks -s $SERVER -k $PASSWORD
     xtproxy -s $SERVER -k $PASSWORD
     xforwarder -l localhost:5533 -t 8.8.8.8:53 -s $SERVER -k $PASSWORD
