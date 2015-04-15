@@ -18,7 +18,7 @@ static int daemon_mode = 1;
 static int concurrency = 0;
 static char *local_addrbuf = "0.0.0.0:1070";
 static char *server_addrbuf;
-static char *pidfile = "xtproxy.pid";
+static char *pidfile = "/var/run/xsocks/xtproxy.pid";
 static char *password = NULL;
 static char *xsignal;
 static struct signal_ctx signals[3];
@@ -45,11 +45,11 @@ print_usage(const char *prog) {
     printf("Usage: %s <-l local> <-s server> <-k password> [-p pidfile] [-c concurrency] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -h, --help\t\t : this help\n"
-         "  -l <bind address>\t : bind address:port default(0.0.0.0:1070)\n"
+         "  -l <bind address>\t : bind address:port (default: 0.0.0.0:1070)\n"
          "  -s <server address>\t : server address:port\n"
          "  -k <password>\t\t : password of server\n"
          "  -c <concurrency>\t : worker threads\n"
-         "  -p <pidfile>\t\t : pid file path (default: ./xtproxy.pid)\n"
+         "  -p <pidfile>\t\t : pid file path (default: /var/run/xsocks/xtproxy.pid)\n"
          "  [--signal <signal>]\t : send signal to xtproxy: quit, stop\n"
          "  -n\t\t\t : non daemon mode\n"
          "  -v, --version\t\t : show version\n"

@@ -8,9 +8,11 @@ SERVER=IP:PORT
 PASSWORD=PASSWORD
 
 start() {
+    tproxy
+    mkdir -p /var/run/xsocks
     xsocks -s $SERVER -k $PASSWORD
     xtproxy -s $SERVER -k $PASSWORD
-    xforwarder -l localhost:5533 -t 8.8.8.8:53 -s $SERVER -k $PASSWORD
+    xforwarder -l 0.0.0.0:5533 -t 8.8.8.8:53 -s $SERVER -k $PASSWORD
 }
 
 stop() {
@@ -23,4 +25,41 @@ shutdown() {
     xsocks --signal quit
     xtproxy --signal quit
     xforwarder --signal quit
+}
+
+tproxy() {
+    local LISTEN_PORT=1070
+    local IP_ROUTE_TABLE_NUMBER=100
+    local FWMARK="0x01/0x01"
+    local SETNAME=wall
+
+    iptables -t nat -D PREROUTING -p tcp -j XSOCKS
+    iptables -t nat -F XSOCKS
+    iptables -t nat -X XSOCKS
+
+    iptables -t mangle -D PREROUTING -j XSOCKS
+    iptables -t mangle -F XSOCKS
+    iptables -t mangle -X XSOCKS
+
+    iptables -t nat -N XSOCKS
+    iptables -t mangle -N XSOCKS
+
+    ipset -F $SETNAME
+    ipset -X $SETNAME
+    ipset -N $SETNAME iphash
+
+    ### TCP
+    iptables -t nat -A XSOCKS -p tcp -m set --match-set $SETNAME dst -j REDIRECT --to-port $LISTEN_PORT
+    iptables -t nat -A PREROUTING -p tcp -j XSOCKS
+
+    ### UDP
+    ip rule del fwmark $FWMARK table $IP_ROUTE_TABLE_NUMBER
+    ip route del local 0.0.0.0/0 dev lo table $IP_ROUTE_TABLE_NUMBER
+
+    ip rule add fwmark $FWMARK table $IP_ROUTE_TABLE_NUMBER
+    ip route add local 0.0.0.0/0 dev lo table $IP_ROUTE_TABLE_NUMBER
+
+    iptables -t mangle -A XSOCKS -p udp -m set --match-set $SETNAME dst -j TPROXY \
+        --on-port $LISTEN_PORT --tproxy-mark $FWMARK
+    iptables -t mangle -A PREROUTING -j XSOCKS
 }

@@ -2,6 +2,14 @@ xsocks
 =================
 A secure and fast proxy for protect your network traffic
 
+Introdution
+------------
+* xsocksd: Backend of xsocks, xtproxy, xforwarder
+* xsocks: A socks5 server
+* xtproxy: A Transparent Proxy
+* xforwarder: Forward data to a specific server
+* xtunnel: Like xforwarder, but specify target server on server side
+
 Features
 ------------
 * Transparent Proxy for all tcp traffic and udp packet
@@ -74,9 +82,11 @@ IP_ROUTE_TABLE_NUMBER=100
 FWMARK="0x01/0x01"
 SETNAME=wall
 
+iptables -t nat -D PREROUTING -p tcp -j XSOCKS
 iptables -t nat -F XSOCKS
 iptables -t nat -X XSOCKS
 
+iptables -t mangle -D PREROUTING -j XSOCKS
 iptables -t mangle -F XSOCKS
 iptables -t mangle -X XSOCKS
 
