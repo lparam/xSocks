@@ -1,3 +1,8 @@
+v0.1.5 (2015-4-15)
+-----------
+* Fix: Openwrt PKG_VERSION
+
+
 v0.1.4 (2015-4-15)
 -----------
 * Feature: Add tproxy function to OpenWrt init script
