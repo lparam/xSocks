@@ -3,7 +3,7 @@
 
 #include "uv.h"
 
-#define XSOCKS_VERSION      "0.1.4"
+#define XSOCKS_VERSION      "0.1.5"
 
 struct server_context {
     int index;
