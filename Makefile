@@ -49,6 +49,9 @@ CFLAGS = \
 	$(PLATFORM_CFLAGS)
 
 CFLAGS += -fomit-frame-pointer -fdata-sections -ffunction-sections
+ifneq (,$(findstring android,$(CROSS_COMPILE)))
+CFLAGS += -pie -fPIE
+endif
 EXTRA_CFLAGS =
 
 #########################################################################
@@ -57,7 +60,10 @@ CPPFLAGS += -Isrc
 CPPFLAGS += -I3rd/libuv/include -I3rd/libsodium/src/libsodium/include -I3rd/c-ares/
 
 LDFLAGS = -Wl,--gc-sections
-LDFLAGS += -pthread -ldl -lrt
+ifneq (,$(findstring android,$(CROSS_COMPILE)))
+LDFLAGS += -pie -fPIE
+endif
+LDFLAGS += -pthread -ldl
 LDFLAGS += 3rd/libuv/.libs/libuv.a 3rd/libsodium/src/libsodium/.libs/libsodium.a
 
 #########################################################################
@@ -169,7 +175,7 @@ xtunnel: \
 	$(LINK) $^ -o $(OBJTREE)/$@ $(LDFLAGS)
 
 clean:
-	@find $(OBJTREE) -type f \
+	@find $(OBJTREE)/src -type f \
 	\( -name '*.bak' -o -name '*~' \
 	-o -name '*.o' -o -name '*.tmp' \) -print \
 	| xargs rm -f
@@ -182,11 +188,11 @@ distclean: clean
 
 ifndef CROSS_COMPILE
 install:
-	$(Q)cp xsocksd $(INSTALL_DIR)
-	$(Q)cp xsocks $(INSTALL_DIR)
-	$(Q)cp xtproxy $(INSTALL_DIR)
-	$(Q)cp xforwarder $(INSTALL_DIR)
-	$(Q)cp xtunnel $(INSTALL_DIR)
+	$(Q)$(STRIP) --strip-unneeded xsocksd && cp xsocksd $(INSTALL_DIR)
+	$(Q)$(STRIP) --strip-unneeded xsocks && cp xsocks $(INSTALL_DIR)
+	$(Q)$(STRIP) --strip-unneeded xtproxy && cp xtproxy $(INSTALL_DIR)
+	$(Q)$(STRIP) --strip-unneeded xforwarder && cp xforwarder $(INSTALL_DIR)
+	$(Q)$(STRIP) --strip-unneeded xtunnel && cp xtunnel $(INSTALL_DIR)
 else
 install:
 endif
