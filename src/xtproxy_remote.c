@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <uv.h>
+#include "uv.h"
 
 #include "util.h"
 #include "logger.h"

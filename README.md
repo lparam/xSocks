@@ -8,7 +8,7 @@ Introdution
 * xsocks: A socks5 server
 * xtproxy: A Transparent Proxy
 * xforwarder: Forward data to a specific server
-* xtunnel: Like xforwarder, but specify target server on server side
+* xtunnel: Like xforwarder, but standalone and specify target on server side
 
 Features
 ------------
@@ -70,51 +70,79 @@ Proxy all tcp traffic and udp packet transparently on gateway.
 
 ```bash
 root@OpenWrt:~# opkg install iptables-mod-tproxy
-root@OpenWrt:~# xtproxy -s SERVER:PORT -k PASSWORD
 ```
 
-tproxy.sh
+/etc/init.d/xsocks
 ```bash
-#!/bin/sh
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006-2014 OpenWrt.org
 
-LISTEN_PORT=1070
-IP_ROUTE_TABLE_NUMBER=100
-FWMARK="0x01/0x01"
-SETNAME=wall
+START=72
+STOP=30
+FIREWALL_RELOAD=0
+SERVER=IP:PORT
+PASSWORD=PASSWORD
 
-iptables -t nat -D PREROUTING -p tcp -j XSOCKS
-iptables -t nat -F XSOCKS
-iptables -t nat -X XSOCKS
+start() {
+    tproxy
+    mkdir -p /var/run/xsocks
+    xsocks -s $SERVER -k $PASSWORD
+    xtproxy -s $SERVER -k $PASSWORD
+    xforwarder -l 0.0.0.0:5533 -t 8.8.8.8:53 -s $SERVER -k $PASSWORD
+}
 
-iptables -t mangle -D PREROUTING -j XSOCKS
-iptables -t mangle -F XSOCKS
-iptables -t mangle -X XSOCKS
+stop() {
+    xsocks --signal stop
+    xtproxy --signal stop
+    xforwarder --signal stop
+}
 
-iptables -t nat -N XSOCKS
-iptables -t mangle -N XSOCKS
+shutdown() {
+    xsocks --signal quit
+    xtproxy --signal quit
+    xforwarder --signal quit
+}
 
-ipset -F $SETNAME
-ipset -X $SETNAME
-ipset -N $SETNAME iphash
+tproxy() {
+    local LISTEN_PORT=1070
+    local IP_ROUTE_TABLE_NUMBER=100
+    local FWMARK="0x01/0x01"
+    local SETNAME=wall
 
-### TCP
-iptables -t nat -A XSOCKS -p tcp -m set --match-set $SETNAME dst -j REDIRECT --to-port $LISTEN_PORT
-iptables -t nat -A PREROUTING -p tcp -j XSOCKS
+    iptables -t nat -D PREROUTING -p tcp -j XSOCKS
+    iptables -t nat -F XSOCKS
+    iptables -t nat -X XSOCKS
 
-### UDP
-ip rule del fwmark $FWMARK table $IP_ROUTE_TABLE_NUMBER
-ip route del local 0.0.0.0/0 dev lo table $IP_ROUTE_TABLE_NUMBER
+    iptables -t mangle -D PREROUTING -j XSOCKS
+    iptables -t mangle -F XSOCKS
+    iptables -t mangle -X XSOCKS
 
-ip rule add fwmark $FWMARK table $IP_ROUTE_TABLE_NUMBER
-ip route add local 0.0.0.0/0 dev lo table $IP_ROUTE_TABLE_NUMBER
+    iptables -t nat -N XSOCKS
+    iptables -t mangle -N XSOCKS
 
-iptables -t mangle -A XSOCKS -p udp -m set --match-set $SETNAME dst -j TPROXY \
-            --on-port $LISTEN_PORT --tproxy-mark $FWMARK
-iptables -t mangle -A PREROUTING -j XSOCKS
+    ipset -F $SETNAME
+    ipset -X $SETNAME
+    ipset -N $SETNAME iphash
+
+    ### TCP
+    iptables -t nat -A XSOCKS -p tcp -m set --match-set $SETNAME dst -j REDIRECT --to-port $LISTEN_PORT
+    iptables -t nat -A PREROUTING -p tcp -j XSOCKS
+
+    ### UDP
+    ip rule del fwmark $FWMARK table $IP_ROUTE_TABLE_NUMBER
+    ip route del local 0.0.0.0/0 dev lo table $IP_ROUTE_TABLE_NUMBER
+
+    ip rule add fwmark $FWMARK table $IP_ROUTE_TABLE_NUMBER
+    ip route add local 0.0.0.0/0 dev lo table $IP_ROUTE_TABLE_NUMBER
+
+    iptables -t mangle -A XSOCKS -p udp -m set --match-set $SETNAME dst -j TPROXY \
+        --on-port $LISTEN_PORT --tproxy-mark $FWMARK
+    iptables -t mangle -A PREROUTING -j XSOCKS
+}
 ```
 
 ```bash
-root@OpenWrt:~# tproxy.sh
+root@OpenWrt:~# /etc/init.d/xsocks start
 ```
 
 ```bash

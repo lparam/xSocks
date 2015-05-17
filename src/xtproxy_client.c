@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <limits.h>
 
 #include <netinet/in.h>
 #include <linux/netfilter_ipv4.h>
@@ -62,8 +63,6 @@ void
 forward_to_client(struct client_context *client, uint8_t *buf, int buflen) {
     uv_buf_t reply = uv_buf_init((char*)buf, buflen);
     client->write_req.data = client;
-    /* uv_write_t *write_req = malloc(sizeof(*write_req));
-    write_req->data = client; */
     uv_write(&client->write_req, &client->handle.stream, &reply, 1, client_send_cb);
 }
 
@@ -89,8 +88,6 @@ client_send_cb(uv_write_t *req, int status) {
             logger_log(LOG_ERR, "forward to client failed: %s", uv_strerror(status));
         }
     }
-
-    /* free(req); */
 }
 
 static void
