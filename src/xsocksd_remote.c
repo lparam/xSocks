@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include <uv.h>
+#include "uv.h"
 
 #include "util.h"
 #include "logger.h"
