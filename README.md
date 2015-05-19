@@ -29,7 +29,7 @@ make && sudo make install
 ```bash
 # At OpenWRT build root
 cd package
-git clone https://github.com/xsocks/xsocks.git
+git clone https://github.com/lparam/xsocks.git
 cd ..
 
 # Build the package
