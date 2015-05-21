@@ -1,7 +1,11 @@
+v0.1.7 (2015-5-21)
+-----------
+* Fix: Some minor bug
+
+
 v0.1.6 (2015-5-17)
 -----------
 * Feature: Add Android build script
-* Change: Pid file path
 
 
 v0.1.5 (2015-4-15)
