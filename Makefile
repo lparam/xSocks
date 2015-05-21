@@ -5,7 +5,7 @@
 
 MAJOR = 0
 MINOR = 1
-PATCH = 6
+PATCH = 7
 NAME = xsocks
 
 ifdef O
@@ -62,6 +62,8 @@ CPPFLAGS += -I3rd/libuv/include -I3rd/libsodium/src/libsodium/include -I3rd/c-ar
 LDFLAGS = -Wl,--gc-sections
 ifneq (,$(findstring android,$(CROSS_COMPILE)))
 LDFLAGS += -pie -fPIE
+else
+LDFLAGS += -lrt
 endif
 LDFLAGS += -pthread -ldl
 LDFLAGS += 3rd/libuv/.libs/libuv.a 3rd/libsodium/src/libsodium/.libs/libsodium.a

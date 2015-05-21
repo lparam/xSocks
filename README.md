@@ -14,6 +14,7 @@ Features
 ------------
 * Transparent Proxy for all tcp traffic and udp packet
 * Multithreading
+* Avaliable on multiple platforms, including PC (Linux), Mobile (Android) and Routers (OpenWRT).
 
 Installation
 ------------
@@ -29,7 +30,7 @@ make && sudo make install
 ```bash
 # At OpenWRT build root
 cd package
-git clone https://github.com/xsocks/xsocks.git
+git clone https://github.com/lparam/xsocks.git
 cd ..
 
 # Build the package
