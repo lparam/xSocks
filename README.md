@@ -14,7 +14,7 @@ Features
 ------------
 * Transparent Proxy for all tcp traffic and udp packet
 * Multithreading
-* Avaliable on multiple platforms, including PC (Linux), Mobile (Android) and Routers (OpenWRT).
+* Avaliable on multiple platforms, including PC (Linux), Mobile ([Android](https://github.com/lparam/xsocks-android)) and Routers (OpenWRT).
 
 Installation
 ------------
