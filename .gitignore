@@ -35,6 +35,13 @@ tags
 *.swp
 *.pid
 
+/Debug
+/Release
+*.opensdf
+*.sdf
+*.suo
+*.user
+
 /xsocksd
 /xsocks
 /xtproxy
