@@ -1,15 +1,18 @@
+/*#if defined(_WIN32)
+#define _CRT_SECURE_NO_WARNINGS
+#endif*/
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 #include <ctype.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #include "uv.h"
 #include "logger.h"
 
+#if defined(_WIN32)
+#define strdup _strdup
+#endif
 
 #define MAX_LINE_LENGTH_BYTES (64)
 #define DEFAULT_LINE_LENGTH_BYTES (16)
@@ -49,9 +52,10 @@ print_buffer(const void *data, uint32_t count, uint32_t width, uint32_t linelen)
             else
                 x = lb.uc[i] = *(volatile uint8_t *)data;
             printf(i % (linelen / 2) ? " %0*x" : "  %0*x", width * 2, x);
-            data += width;
 #if defined(_MSC_VER)
+			(uint8_t *)data += width;
 #else
+			data += width;
 #endif
         }
 

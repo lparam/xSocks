@@ -1,8 +1,6 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <errno.h>
 #include <time.h>
 #include <stdarg.h>
 #if !defined(_WIN32)
@@ -10,12 +8,13 @@
 #endif
 
 #include "uv.h"
+#include "logger.h"
 
 #define LOG_MESSAGE_SIZE 256
 
 static int _syslog = 0;
 static uv_tty_t _tty;
-static uv_loop_t loop;
+static uv_loop_t _loop;
 
 static char *levels[] = {
     "EMERG", "ALERT", "CRIT", "ERR", "WARNING", "NOTICE", "INFO", "DEBUG"
@@ -28,7 +27,7 @@ static char *colors[] = {
 
 #if defined(_WIN32)
 static void
-syslog(int, const char *, ...) {
+syslog(int priority, const char *format, ...) {
 }
 #endif
 
@@ -38,9 +37,20 @@ log2tty(char *msg) {
 
     uv_buf_t buf;
     buf.base = msg;
-    buf.len = strlen(buf.base);
+    buf.len = strlen(msg);
 
-    uv_write(&req, (uv_stream_t*)&_tty, &buf, 1, NULL);
+	uv_tty_t tty;
+	uv_loop_t loop;
+	uv_loop_init(&loop);
+	uv_tty_init(&loop, &tty, 2, 0);
+	uv_tty_set_mode(&tty, UV_TTY_MODE_NORMAL);
+
+	if (uv_guess_handle(1) == UV_TTY) {
+		uv_write(&req, (uv_stream_t*)&tty, &buf, 1, NULL);
+	}
+
+	uv_loop_close(&loop);
+	//fprintf(stderr, msg);
 }
 
 void
@@ -89,11 +99,21 @@ int
 logger_init(int syslog) {
     _syslog = syslog;
 
-    uv_loop_init(&loop);
-    uv_tty_init(&loop, &_tty, 2, 0);
+    uv_loop_init(&_loop);
+    uv_tty_init(&_loop, &_tty, 2, 0);
     uv_tty_set_mode(&_tty, UV_TTY_MODE_NORMAL);
 
     return 0;
+}
+
+int
+logger_init1(int syslog, uv_loop_t *loop) {
+	_syslog = syslog;
+
+	uv_tty_init(loop, &_tty, 2, 0);
+	uv_tty_set_mode(&_tty, UV_TTY_MODE_NORMAL);
+
+	return 0;
 }
 
 void
