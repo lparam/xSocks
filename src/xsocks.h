@@ -18,10 +18,10 @@ struct client_context {
         uv_udp_t udp;
     } handle;
     uv_write_t write_req;
-    struct socks5_request request;
     struct remote_context *remote;
     uint8_t buf[MAX_PACKET_SIZE];
     struct sockaddr addr;
+    uint8_t cmd;
     char target_addr[256];
 };
 

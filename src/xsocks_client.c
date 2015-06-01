@@ -110,7 +110,7 @@ request_ack(struct client_context *client, enum s5_rep rep) {
     buf[2] = 0x00; // RSV
 
     memset(&addr, 0, sizeof(addr));
-    if (client->request.cmd == S5_CMD_UDP_ASSOCIATE) {
+    if (client->cmd == S5_CMD_UDP_ASSOCIATE) {
         uv_tcp_getsockname(&client->handle.tcp, (struct sockaddr *) &addr, &addrlen);
     } else {
         uv_tcp_getsockname(&remote->handle.tcp, (struct sockaddr *) &addr, &addrlen);
@@ -129,7 +129,7 @@ request_ack(struct client_context *client, enum s5_rep rep) {
         buflen = 10;
     }
 
-    if (rep == S5_REP_SUCCESSED && client->request.cmd == S5_CMD_CONNECT) {
+    if (rep == S5_REP_SUCCESSED && client->cmd == S5_CMD_CONNECT) {
         client->stage = XSTAGE_FORWARD;
     } else {
         client->stage = XSTAGE_TERMINATE;
@@ -152,7 +152,7 @@ request_start(struct client_context *client, char *req_buf) {
 
     assert(remote->stage == XSTAGE_FORWARD);
 
-    client->request = *req;
+    client->cmd = req->cmd;
 
     if (req->cmd != S5_CMD_CONNECT && req->cmd != S5_CMD_UDP_ASSOCIATE) {
         logger_log(LOG_ERR, "unsupported cmd: 0x%02x", req->cmd);
