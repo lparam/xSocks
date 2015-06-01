@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
-#include <netinet/in.h>
 
 #include "uv.h"
 

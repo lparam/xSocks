@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
@@ -51,6 +50,9 @@ print_buffer(const void *data, uint32_t count, uint32_t width, uint32_t linelen)
                 x = lb.uc[i] = *(volatile uint8_t *)data;
             printf(i % (linelen / 2) ? " %0*x" : "  %0*x", width * 2, x);
             data += width;
+#if defined(_MSC_VER)
+#else
+#endif
         }
 
         while (thislinelen < linelen) {

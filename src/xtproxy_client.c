@@ -7,7 +7,7 @@
 #include <netinet/in.h>
 #include <linux/netfilter_ipv4.h>
 
-#include <uv.h>
+#include "uv.h"
 
 #include "util.h"
 #include "logger.h"
