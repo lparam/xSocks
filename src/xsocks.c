@@ -237,7 +237,7 @@ main(int argc, char *argv[]) {
 
     rc = resolve_addr(server_addr_buf, &server_addr);
     if (rc) {
-        logger_stderr("invalid local address");
+        logger_stderr("invalid server address");
         return 1;
     }
 

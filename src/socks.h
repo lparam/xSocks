@@ -1,21 +1,23 @@
 #ifndef _SOCKS_H
 #define _SOCKS_H
 
+#pragma pack(push,1)
+
 struct socks5_method_request {
     char ver;
     char nmethods;
     char methods[255];
-}__attribute__((packed));
+};
 
 struct socks5_method_response {
     char ver;
     char method;
-}__attribute__((packed));
+};
 
 struct xsocks_request {
     char atyp;
     char addr[0];
-}__attribute__((packed));
+};
 
 struct socks5_request {
     char ver;
@@ -23,14 +25,16 @@ struct socks5_request {
     char rsv;
     char atyp;
     char addr[0];
-}__attribute__((packed));
+};
 
 struct socks5_response {
     char ver;
     char rep;
     char rsv;
     char atyp;
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
 
 enum s5_auth_method {
     S5_AUTH_NONE = 0x00,

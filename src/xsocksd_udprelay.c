@@ -2,7 +2,6 @@
 #include <string.h>
 #include <getopt.h>
 #include <assert.h>
-#include <unistd.h>
 
 #include "uv.h"
 #include "util.h"
