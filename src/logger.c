@@ -4,7 +4,6 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
-#include <assert.h>
 #ifndef _WIN32
 #include <syslog.h>
 #endif

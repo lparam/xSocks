@@ -51,7 +51,8 @@ EXPRESSLY ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 		#define _GETOPT_API __declspec(dllexport)
 	#else
 		#pragma message("Importing getopt library")
-		#define _GETOPT_API __declspec(dllimport)
+		//#define _GETOPT_API __declspec(dllimport)
+		#define _GETOPT_API
 	#endif
 
 	// Change behavior for C\C++
