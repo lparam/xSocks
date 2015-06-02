@@ -313,6 +313,9 @@ main(int argc, char *argv[]) {
             uv_sem_wait(&servers[i].semaphore);
         }
         free(servers);
+#else
+        logger_stderr("don't support multithreading.");
+        return 1;
 #endif
 	}
 

@@ -84,8 +84,8 @@ consumer_start(void *arg) {
 
     struct resolver_context *res = NULL;
     if (server->nameserver_num >= 0) {
-        res = resolver_init(&loop, 0,
-          server->nameserver_num == 0 ? NULL : server->nameservers, server->nameserver_num);
+        char **servers = server->nameserver_num == 0 ? NULL : server->nameservers;
+        res = resolver_init(&loop, 0, servers, server->nameserver_num);
         loop.data = res;
     }
 
