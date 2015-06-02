@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #if defined(_WIN32)
-#include "getopt.h"
+#include "getopt-win.h"
 #else
 #include <getopt.h>
 #endif
