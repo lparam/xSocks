@@ -119,6 +119,8 @@ _END_EXTERN_C
 	#undef _GETOPT_THROW
 	#undef _GETOPT_API
 
+	#undef _UNICODE
+
 	#ifdef _UNICODE
 		#define getopt getopt_w
 		#define getopt_long getopt_long_w

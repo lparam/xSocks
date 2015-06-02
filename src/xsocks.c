@@ -33,26 +33,32 @@ static const struct option _lopts[] = {
     { "",        required_argument,   NULL, 'l' },
     { "",        required_argument,   NULL, 'k' },
     { "",        required_argument,   NULL, 's' },
-    { "",        no_argument,   NULL, 'n' },
-    { "signal", required_argument,   NULL, 0 },
-    { "version", no_argument,   NULL, 'v' },
-    { "help",    no_argument,   NULL, 'h' },
-    { "",        no_argument,   NULL, 'V' },
-    { NULL,      no_argument,   NULL,  0  }
+    { "",        no_argument,         NULL, 'n' },
+    { "signal",  required_argument,   NULL,  0  },
+    { "version", no_argument,         NULL, 'v' },
+    { "help",    no_argument,         NULL, 'h' },
+    { "",        no_argument,         NULL, 'V' },
+    { NULL,      no_argument,         NULL,  0  }
 };
 
 static void
 print_usage(const char *prog) {
     printf("xsocks Version: %s Maintained by Ken <ken.i18n@gmail.com>\n", XSOCKS_VER);
+#ifdef _WIN32
+    printf("Usage: %s [-l local] <-t server> <-k password> [-hvV]\n\n", prog);
+#else
     printf("Usage: %s [-l local] <-t server> <-k password> [-p pidfile] [-c concurrency] [-s signal] [-nhvV]\n\n", prog);
+#endif
     printf("Options:\n");
     puts("  -s <server address>\t : server address:port\n"
          "  -k <password>\t\t : password of server\n"
          "  [-l <bind address>]\t : bind address:port (default: 0.0.0.0:1080)\n"
+#ifndef _WIN32
          "  [-c <concurrency>]\t : worker threads\n"
          "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xsocks.pid)\n"
          "  [--signal <signal>]\t : send signal to xsocks: quit, stop\n"
          "  [-n]\t\t\t : non daemon mode\n"
+#endif
          "  [-h, --help]\t\t : this help\n"
          "  [-v, --version]\t : show version\n"
          "  [-V] \t\t\t : verbose mode\n");
@@ -326,6 +332,8 @@ main(int argc, char *argv[]) {
         delete_pidfile(pidfile);
     }
 #endif
+
+    logger_exit();
 
     return 0;
 }

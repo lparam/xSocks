@@ -45,6 +45,7 @@ endif
 CFLAGS = \
 	-Os	\
 	-std=gnu99 \
+	-g \
 	-Wall \
 	$(PLATFORM_CFLAGS)
 
