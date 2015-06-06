@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined(_WIN32)
+#include "getopt-win.h"
+#else
 #include <getopt.h>
-#include <assert.h>
+#endif
 
 #include "uv.h"
 
@@ -12,7 +15,6 @@
 #include "daemon.h"
 #include "udprelay.h"
 #include "xsocks.h"
-
 
 static int daemon_mode = 1;
 static int concurrency = 0;
@@ -31,26 +33,32 @@ static const struct option _lopts[] = {
     { "",        required_argument,   NULL, 'l' },
     { "",        required_argument,   NULL, 'k' },
     { "",        required_argument,   NULL, 's' },
-    { "",        no_argument,   NULL, 'n' },
-    { "signal", required_argument,   NULL, 0 },
-    { "version", no_argument,   NULL, 'v' },
-    { "help",    no_argument,   NULL, 'h' },
-    { "",        no_argument,   NULL, 'V' },
-    { NULL,      no_argument,   NULL,  0  }
+    { "",        no_argument,         NULL, 'n' },
+    { "signal",  required_argument,   NULL,  0  },
+    { "version", no_argument,         NULL, 'v' },
+    { "help",    no_argument,         NULL, 'h' },
+    { "",        no_argument,         NULL, 'V' },
+    { NULL,      no_argument,         NULL,  0  }
 };
 
 static void
 print_usage(const char *prog) {
     printf("xsocks Version: %s Maintained by Ken <ken.i18n@gmail.com>\n", XSOCKS_VER);
+#ifdef _WIN32
+    printf("Usage: %s [-l local] <-t server> <-k password> [-hvV]\n\n", prog);
+#else
     printf("Usage: %s [-l local] <-t server> <-k password> [-p pidfile] [-c concurrency] [-s signal] [-nhvV]\n\n", prog);
+#endif
     printf("Options:\n");
     puts("  -s <server address>\t : server address:port\n"
          "  -k <password>\t\t : password of server\n"
          "  [-l <bind address>]\t : bind address:port (default: 0.0.0.0:1080)\n"
+#ifndef _WIN32
          "  [-c <concurrency>]\t : worker threads\n"
          "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xsocks.pid)\n"
          "  [--signal <signal>]\t : send signal to xsocks: quit, stop\n"
          "  [-n]\t\t\t : non daemon mode\n"
+#endif
          "  [-h, --help]\t\t : this help\n"
          "  [-v, --version]\t : show version\n"
          "  [-V] \t\t\t : verbose mode\n");
@@ -135,6 +143,7 @@ close_signal() {
     }
 }
 
+#if !defined(_WIN32)
 static void
 signal_cb(uv_signal_t *handle, int signum) {
     if (signum == SIGINT || signum == SIGQUIT) {
@@ -177,6 +186,7 @@ setup_signal(uv_loop_t *loop, uv_signal_cb cb, void *data) {
         uv_signal_start(&signals[i].sig, cb, signals[i].signum);
     }
 }
+#endif
 
 static void
 init(void) {
@@ -185,9 +195,11 @@ init(void) {
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
 
+#if !defined(_WIN32)
     signal(SIGPIPE, SIG_IGN);
     signal(SIGCHLD, SIG_IGN);
     signal(SIGABRT, SIG_IGN);
+#endif
 
     if (crypto_init(password)) {
         logger_stderr("crypto init failed");
@@ -206,9 +218,11 @@ main(int argc, char *argv[]) {
 
     parse_opts(argc, argv);
 
+#if !defined(_WIN32)
     if (xsignal) {
         return signal_process(xsignal, pidfile);
     }
+#endif
 
     if (!password || !server_addr_buf) {
         print_usage(argv[0]);
@@ -217,6 +231,7 @@ main(int argc, char *argv[]) {
 
     init();
 
+#if !defined(_WIN32)
     if (daemon_mode) {
         if (daemonize()) {
             return 1;
@@ -226,6 +241,7 @@ main(int argc, char *argv[]) {
             return 1;
         }
     }
+#endif
 
     loop = uv_default_loop();
 
@@ -237,7 +253,7 @@ main(int argc, char *argv[]) {
 
     rc = resolve_addr(server_addr_buf, &server_addr);
     if (rc) {
-        logger_stderr("invalid local address");
+        logger_stderr("invalid server address");
         return 1;
     }
 
@@ -260,7 +276,9 @@ main(int argc, char *argv[]) {
         if (rc == 0) {
             logger_log(LOG_INFO, "listening on %s", local_addr);
 
+#if !defined(_WIN32)
             setup_signal(loop, signal_cb, &ctx);
+#endif
 
             udprelay_start(loop, &ctx);
 
@@ -273,6 +291,7 @@ main(int argc, char *argv[]) {
         }
 
     } else {
+#if !defined(_WIN32)
         struct server_context *servers = calloc(concurrency, sizeof(servers[0]));
         for (int i = 0; i < concurrency; i++) {
             struct server_context *ctx = servers + i;
@@ -300,13 +319,21 @@ main(int argc, char *argv[]) {
             uv_sem_wait(&servers[i].semaphore);
         }
         free(servers);
-    }
+#else
+        logger_stderr("don't support multithreading.");
+        return 1;
+#endif
+	}
 
     udprelay_destroy();
 
+#if !defined(_WIN32)
     if (daemon_mode) {
         delete_pidfile(pidfile);
     }
+#endif
+
+    logger_exit();
 
     return 0;
 }

@@ -1,7 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <getopt.h>
-#include <assert.h>
 
 #include "uv.h"
 
@@ -9,7 +7,6 @@
 #include "logger.h"
 #include "common.h"
 #include "crypto.h"
-#include "socks.h"
 #include "packet.h"
 #include "cache.h"
 
@@ -24,7 +21,7 @@ struct client_context {
     char key[KEY_BYTES + 1];
 };
 
-extern uint16_t idle_timeout;
+extern uint32_t idle_timeout;
 static uv_mutex_t mutex;
 static struct cache *cache;
 
@@ -82,7 +79,11 @@ client_alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
 
 static void
 server_alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
-    buf->base = malloc(suggested_size) + 3;
+#if defined(_MSC_VER)
+	buf->base = (char*)malloc(suggested_size) + 3;
+#else
+	buf->base = malloc(suggested_size) + 3;
+#endif
     buf->len = suggested_size - 3;
 }
 

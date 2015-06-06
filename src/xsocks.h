@@ -18,10 +18,10 @@ struct client_context {
         uv_udp_t udp;
     } handle;
     uv_write_t write_req;
-    struct socks5_request request;
     struct remote_context *remote;
     uint8_t buf[MAX_PACKET_SIZE];
     struct sockaddr addr;
+    uint8_t cmd;
     char target_addr[256];
 };
 
@@ -56,7 +56,7 @@ void forward_to_remote(struct remote_context *remote, uint8_t *buf, int buflen);
 void reset_timer(struct remote_context *remote);
 
 int verbose;
-uint16_t idle_timeout;
+uint32_t idle_timeout;
 struct sockaddr bind_addr;
 struct sockaddr server_addr;
 

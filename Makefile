@@ -4,8 +4,8 @@
 #
 
 MAJOR = 0
-MINOR = 1
-PATCH = 7
+MINOR = 2
+PATCH = 0
 NAME = xsocks
 
 ifdef O
@@ -45,6 +45,7 @@ endif
 CFLAGS = \
 	-Os	\
 	-std=gnu99 \
+	-g \
 	-Wall \
 	$(PLATFORM_CFLAGS)
 

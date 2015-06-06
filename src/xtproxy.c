@@ -4,7 +4,7 @@
 #include <getopt.h>
 #include <assert.h>
 
-#include <uv.h>
+#include "uv.h"
 
 #include "util.h"
 #include "logger.h"
