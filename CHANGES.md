@@ -1,3 +1,8 @@
+v0.2.0 (2015-6-07)
+-----------
+* Feature: Support WIN32
+
+
 v0.1.7 (2015-5-21)
 -----------
 * Fix: Some minor bug
