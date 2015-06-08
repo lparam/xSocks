@@ -15,9 +15,14 @@
 #define LOG_MESSAGE_SIZE 256
 
 static int _syslog = 0;
+
 #ifdef _WIN32
 static uv_tty_t _tty;
 static uv_tty_t _ttyerr;
+#endif
+
+#ifdef _MSC_VER
+#define vsnprintf _vsnprintf
 #endif
 
 static const char *levels[] = {
