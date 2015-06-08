@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
-#include <assert.h>
 
 #include "uv.h"
 
@@ -21,7 +20,9 @@ static char *server_addr_buf;
 static char *pidfile = "/var/run/xsocks/xforwarder.pid";
 static char *password = NULL;
 static char *xsignal;
+#ifndef _WIN32
 static struct signal_ctx signals[3];
+#endif
 
 static const char *_optString = "l:c:d:p:t:k:s:nVvh";
 static const struct option _lopts[] = {
@@ -48,10 +49,12 @@ print_usage(const char *prog) {
          "  -t <destination>\t : destination address:port\n"
          "  -k <password>\t\t : password of server\n"
          "  [-l <bind address>]\t : bind address:port (default: 0.0.0.0:5533)\n"
+#ifndef _WIN32
          "  [-c <concurrency>]\t : worker threads\n"
          "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xforwarder.pid)\n"
          "  [--signal <signal>]\t : send signal to xforwarder: quit, stop\n"
          "  [-n]\t\t\t : non daemon mode\n"
+#endif
          "  [-h, --help]\t\t : this help\n"
          "  [-v, --version]\t : show version\n"
          "  [-V] \t\t\t : verbose mode\n");
@@ -129,7 +132,8 @@ close_loop(uv_loop_t *loop) {
     uv_loop_close(loop);
 }
 
-void
+#ifndef _WIN32
+static void
 close_signal() {
     for (int i = 0; i < 2; i++) {
         uv_signal_stop(&signals[i].sig);
@@ -167,7 +171,7 @@ signal_cb(uv_signal_t *handle, int signum) {
     }
 }
 
-void
+static void
 setup_signal(uv_loop_t *loop, uv_signal_cb cb, void *data) {
     signals[0].signum = SIGINT;
     signals[1].signum = SIGQUIT;
@@ -178,6 +182,7 @@ setup_signal(uv_loop_t *loop, uv_signal_cb cb, void *data) {
         uv_signal_start(&signals[i].sig, cb, signals[i].signum);
     }
 }
+#endif
 
 static void
 init(void) {
@@ -186,7 +191,9 @@ init(void) {
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
 
+#ifndef _WIN32
     signal(SIGPIPE, SIG_IGN);
+#endif
 
     if (crypto_init(password)) {
         logger_log(LOG_ERR, "crypto init failed");
@@ -205,9 +212,11 @@ main(int argc, char *argv[]) {
 
     parse_opts(argc, argv);
 
+#ifndef _WIN32
     if (xsignal) {
         return signal_process(xsignal, pidfile);
     }
+#endif
 
     if (!password || !server_addr_buf || !dest_addr_buf) {
         print_usage(argv[0]);
@@ -216,6 +225,7 @@ main(int argc, char *argv[]) {
 
     init();
 
+#ifndef _WIN32
     if (daemon_mode) {
         if (daemonize()) {
             return 1;
@@ -225,6 +235,7 @@ main(int argc, char *argv[]) {
             return 1;
         }
     }
+#endif
 
     loop = uv_default_loop();
 
@@ -266,7 +277,9 @@ main(int argc, char *argv[]) {
         if (rc == 0) {
             logger_log(LOG_INFO, "listening on %s", local_addr);
 
+#ifndef _WIN32
             setup_signal(loop, signal_cb, &ctx);
+#endif
 
             udprelay_start(loop, &ctx);
 
@@ -279,6 +292,7 @@ main(int argc, char *argv[]) {
         }
 
     } else {
+#ifndef _WIN32
         struct server_context *servers = calloc(concurrency, sizeof(servers[0]));
         for (int i = 0; i < concurrency; i++) {
             struct server_context *ctx = servers + i;
@@ -307,13 +321,21 @@ main(int argc, char *argv[]) {
             uv_sem_wait(&servers[i].semaphore);
         }
         free(servers);
+#else
+        logger_stderr("don't support multithreading.");
+        return 1;
+#endif
     }
 
     udprelay_destroy();
 
+#ifndef _WIN32
     if (daemon_mode) {
         delete_pidfile(pidfile);
     }
+#endif
+
+    logger_exit();
 
     return 0;
 }

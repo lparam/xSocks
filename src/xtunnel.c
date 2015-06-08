@@ -21,7 +21,9 @@ static char *dest_addr;
 static char *password = NULL;
 static char *pidfile = "/var/run/xsocks/xtunnel.pid";
 static char *xsignal;
+#ifndef _WIN32
 static struct signal_ctx signals[3];
+#endif
 
 static const char *_optString = "nm:l:t:k:c:p:Vvh";
 static const struct option _lopts[] = {
@@ -50,10 +52,12 @@ print_usage(const char *prog) {
          "  -l <local>\t\t : local address:port (default: 0.0.0.0:1222)\n"
          "  -t <target>\t\t : target address:port\n"
          "  -k <password>\t\t : password of server\n"
+#ifndef _WIN32
          "  [-p pidfile]\t\t : pid file path (default: /var/run/xsocks/xtunnel.pid)\n"
          "  [-c concurrency]\t : worker threads\n"
          "  [--signal <signal>]\t : send signal to xtunnel: quit, stop\n"
 	     "  [-n]\t\t\t : non daemon mode\n"
+#endif
          "  [-V] \t\t\t : verbose mode\n"
          "  [-h, --help]\t\t : this help\n"
          "  [-v, --version]\t : show version\n");
@@ -137,7 +141,8 @@ close_loop(uv_loop_t *loop) {
     uv_loop_close(loop);
 }
 
-void
+#ifndef _WIN32
+static void
 close_signal() {
     for (int i = 0; i < 2; i++) {
         uv_signal_stop(&signals[i].sig);
@@ -185,6 +190,7 @@ setup_signal(uv_loop_t *loop, uv_signal_cb cb, void *data) {
         uv_signal_start(&signals[i].sig, cb, signals[i].signum);
     }
 }
+#endif
 
 static int
 init(void) {
@@ -193,8 +199,10 @@ init(void) {
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
 
+#ifndef _WIN32
     signal(SIGABRT, SIG_IGN);
     signal(SIGPIPE, SIG_IGN);
+#endif
 
     if (crypto_init(password)) {
         logger_log(LOG_ERR, "crypto init failed");
@@ -212,9 +220,11 @@ main(int argc, char *argv[]) {
 
     parse_opts(argc, argv);
 
+#ifndef _WIN32
     if (xsignal) {
         return signal_process(xsignal, pidfile);
     }
+#endif
 
     if (!tunnel_mode || !dest_addr || !password) {
         print_usage(argv[0]);
@@ -225,6 +235,7 @@ main(int argc, char *argv[]) {
         return 1;
     }
 
+#ifndef _WIN32
     if (daemon_mode) {
         if (daemonize()) {
             return 1;
@@ -234,6 +245,7 @@ main(int argc, char *argv[]) {
             return 1;
         }
     }
+#endif
 
     loop = uv_default_loop();
 
@@ -261,7 +273,9 @@ main(int argc, char *argv[]) {
         if (rc == 0) {
             logger_log(LOG_INFO, "listening on %s", source_addr);
 
+#ifndef _WIN32
             setup_signal(loop, signal_cb, &ctx);
+#endif
 
             uv_run(loop, UV_RUN_DEFAULT);
 
@@ -272,6 +286,7 @@ main(int argc, char *argv[]) {
         }
 
     } else {
+#ifndef _WIN32
         struct server_context *servers = calloc(concurrency, sizeof(servers[0]));
         for (int i = 0; i < concurrency; i++) {
             struct server_context *ctx = servers + i;
@@ -296,11 +311,19 @@ main(int argc, char *argv[]) {
             uv_sem_wait(&servers[i].semaphore);
         }
         free(servers);
+#else
+        logger_stderr("don't support multithreading.");
+        return 1;
+#endif
     }
 
+#ifndef _WIN32
     if (daemon_mode) {
         delete_pidfile(pidfile);
     }
+#endif
+
+    logger_exit();
 
     return 0;
 }

@@ -2,7 +2,6 @@
 #define _RESOLVER_H
 
 #include <stdint.h>
-#include <sys/socket.h>
 #include "uv.h"
 
 

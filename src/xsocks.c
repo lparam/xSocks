@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if defined(_WIN32)
+#if defined(_MSC_VER)
 #include "getopt-win.h"
 #else
 #include <getopt.h>
@@ -23,7 +23,10 @@ static char *server_addr_buf;
 static char *pidfile = "/var/run/xsocks/xsocks.pid";
 static char *password = NULL;
 static char *xsignal;
+
+#ifndef _WIN32
 static struct signal_ctx signals[3];
+#endif
 
 static const char *_optString = "l:c:d:p:t:k:s:nVvh";
 static const struct option _lopts[] = {
@@ -136,14 +139,14 @@ close_loop(uv_loop_t *loop) {
     uv_loop_close(loop);
 }
 
-void
+#if !defined(_WIN32)
+static void
 close_signal() {
     for (int i = 0; i < 2; i++) {
         uv_signal_stop(&signals[i].sig);
     }
 }
 
-#if !defined(_WIN32)
 static void
 signal_cb(uv_signal_t *handle, int signum) {
     if (signum == SIGINT || signum == SIGQUIT) {
@@ -175,7 +178,7 @@ signal_cb(uv_signal_t *handle, int signum) {
     }
 }
 
-void
+static void
 setup_signal(uv_loop_t *loop, uv_signal_cb cb, void *data) {
     signals[0].signum = SIGINT;
     signals[1].signum = SIGQUIT;
