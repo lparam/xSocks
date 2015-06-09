@@ -1,3 +1,4 @@
+#define CARES_STATICLIB
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -80,7 +81,7 @@ static struct query_task *
 create_query_task(uv_loop_t *loop, ares_socket_t sock) {
     struct query_task *task = malloc(sizeof *task);
 
-    bzero(task, sizeof *task);
+    memset(task, 0, sizeof *task);
     task->loop = loop;
     task->sock = sock;
 

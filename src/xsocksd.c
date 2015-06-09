@@ -25,7 +25,9 @@ static char *local_addrbuf = "0.0.0.0:1073";
 static char *pidfile = "/var/run/xsocks/xsocksd.pid";
 static char *password;
 static char *xsignal;
-struct signal_ctx signals[3];
+#ifndef _WIN32
+static struct signal_ctx signals[3];
+#endif
 
 static const char *_optString = "l:k:c:d:p:t:nVvh";
 static const struct option _lopts[] = {
@@ -49,12 +51,14 @@ print_usage(const char *prog) {
     printf("Options:\n");
     puts("  -k <password>\t\t : password of server\n"
          "  [-l <bind address>]\t : bind address:port (default: 0.0.0.0:1073)\n"
-         "  [-c <concurrency>]\t : worker threads\n"
          "  [-d <dns>]\t\t : name servers for internal DNS resolver\n"
-         "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xsocksd.pid)\n"
          "  [-t <timeout>]\t : connection timeout in senconds\n"
+#ifndef _WIN32
+         "  [-c <concurrency>]\t : worker threads\n"
+         "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xsocksd.pid)\n"
          "  [--signal <signal>]\t : send signal to xsocksd: quit, stop\n"
          "  [-n]\t\t\t : non daemon mode\n"
+#endif
          "  [-h, --help]\t\t : this help\n"
          "  [-v, --version]\t : show version\n"
          "  [-V] \t\t\t : verbose mode\n");
@@ -134,6 +138,7 @@ close_loop(uv_loop_t *loop) {
     uv_loop_close(loop);
 }
 
+#ifndef _WIN32
 static void
 close_signal() {
     for (int i = 0; i < 2; i++) {
@@ -184,6 +189,7 @@ setup_signal(uv_loop_t *loop, uv_signal_cb cb, void *data) {
         uv_signal_start(&signals[i].sig, cb, signals[i].signum);
     }
 }
+#endif
 
 static void
 init(void) {
@@ -192,9 +198,11 @@ init(void) {
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
 
+#ifndef _WIN32
     signal(SIGPIPE, SIG_IGN);
     signal(SIGCHLD, SIG_IGN);
     signal(SIGABRT, SIG_IGN);
+#endif
 
     if (crypto_init(password)) {
         logger_log(LOG_ERR, "crypto init failed");
@@ -216,6 +224,7 @@ main(int argc, char *argv[]) {
 
     parse_opts(argc, argv);
 
+#ifndef _WIN32
     if (xsignal) {
         return signal_process(xsignal, pidfile);
     }
@@ -224,9 +233,11 @@ main(int argc, char *argv[]) {
         print_usage(argv[0]);
         return 1;
     }
+#endif
 
     init();
 
+#ifndef _WIN32
     if (daemon_mode) {
         if (daemonize()) {
             return 1;
@@ -236,6 +247,7 @@ main(int argc, char *argv[]) {
             return 1;
         }
     }
+#endif
 
     loop = uv_default_loop();
 
@@ -264,7 +276,9 @@ main(int argc, char *argv[]) {
         if (rc == 0) {
             logger_log(LOG_INFO, "listening on %s", local_addrbuf);
 
+#ifndef _WIN32
             setup_signal(loop, signal_cb, &ctx);
+#endif
 
             struct resolver_context *res = resolver_init(loop, MODE_IPV4,
               nameserver_num == 0 ? NULL : nameservers, nameserver_num);
@@ -283,6 +297,7 @@ main(int argc, char *argv[]) {
         }
 
     } else {
+#ifndef _WIN32
         struct server_context *servers = calloc(concurrency, sizeof(servers[0]));
         for (int i = 0; i < concurrency; i++) {
             struct server_context *ctx = servers + i;
@@ -310,13 +325,21 @@ main(int argc, char *argv[]) {
             uv_sem_wait(&servers[i].semaphore);
         }
         free(servers);
+#else
+        logger_stderr("don't support multithreading.");
+        return 1;
+#endif
     }
 
     udprelay_destroy();
 
+#ifndef _WIN32
     if (daemon_mode) {
         delete_pidfile(pidfile);
     }
+#endif
+
+    logger_exit();
 
     return 0;
 }
