@@ -1,3 +1,9 @@
+v0.2.1 (2015-6-09)
+-----------
+* Change: Build native xsocks with WinDDK for windows
+* Feature: Support mingw-w64
+
+
 v0.2.0 (2015-6-07)
 -----------
 * Feature: Support WIN32
