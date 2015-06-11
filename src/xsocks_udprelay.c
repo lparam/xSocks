@@ -21,6 +21,7 @@ struct client_context {
     char key[KEY_BYTES + 1];
 };
 
+extern int verbose;
 extern uint32_t idle_timeout;
 static uv_mutex_t mutex;
 static struct cache *cache;
@@ -147,6 +148,15 @@ server_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
         mlen += 3;
         memcpy(m, "\x0\x0\x0", 3); // RSV + FRAG
 
+        if (verbose) {
+            char src[INET6_ADDRSTRLEN + 1] = {0};
+            char dst[INET6_ADDRSTRLEN + 1] = {0};
+            uint16_t src_port = 0, dst_port = 0;
+            src_port = ip_name(addr, src, sizeof src);
+            dst_port = ip_name(&client->addr, dst, sizeof dst);
+            logger_log(LOG_INFO, "%s:%d -> %s:%d", src, src_port, dst, dst_port);
+        }
+
         forward_to_client(client, m , mlen);
 
         return;
@@ -181,6 +191,14 @@ server_send_cb(uv_udp_send_t *req, int status) {
  */
 static void
 forward_to_server(struct sockaddr *server_addr, struct client_context *client, uint8_t *data, ssize_t datalen) {
+    if (verbose) {
+        char src[INET6_ADDRSTRLEN + 1] = {0};
+        char dst[INET6_ADDRSTRLEN + 1] = {0};
+        uint16_t src_port = 0, dst_port = 0;
+        src_port = ip_name(&client->addr, src, sizeof src);
+        dst_port = ip_name(server_addr, dst, sizeof dst);
+        logger_log(LOG_INFO, "%s:%d -> %s:%d", src, src_port, dst, dst_port);
+    }
     uv_udp_send_t *write_req = malloc(sizeof(*write_req) + sizeof(uv_buf_t));
     uv_buf_t *buf = (uv_buf_t *)(write_req + 1);
     buf->base = (char *)data;
