@@ -43,12 +43,13 @@ static const struct option _lopts[] = {
 static void
 print_usage(const char *prog) {
     printf("xforwarder Version: %s Maintained by Ken <ken.i18n@gmail.com>\n", XFORWARDER_VER);
-    printf("Usage: %s [-l local] <-t server> <-d dest> <-k password> [-p pidfile] [-c concurrency] [-s signal] [-nhvV]\n\n", prog);
+    printf("Usage: %s [-l local] <-s server> <-d dest> <-k password> [-p pidfile] [-c concurrency] [-s signal] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -s <server address>\t : server address:port\n"
-         "  -t <destination>\t : destination address:port\n"
+         "  -d <destination>\t : destination address:port\n"
          "  -k <password>\t\t : password of server\n"
          "  [-l <bind address>]\t : bind address:port (default: 0.0.0.0:5533)\n"
+         "  [-t <timeout>]\t : connection timeout in senconds\n"
 #ifndef _WIN32
          "  [-c <concurrency>]\t : worker threads\n"
          "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xforwarder.pid)\n"
@@ -79,7 +80,7 @@ parse_opts(int argc, char *argv[]) {
         case 'l':
             local_addr = optarg;
             break;
-        case 't':
+        case 'd':
             dest_addr_buf = optarg;
             break;
         case 's':
@@ -93,6 +94,9 @@ parse_opts(int argc, char *argv[]) {
             break;
         case 'p':
             pidfile = optarg;
+            break;
+        case 't':
+            idle_timeout = strtol(optarg, NULL, 10);
             break;
         case 'n':
             daemon_mode = 0;
@@ -201,7 +205,7 @@ init(void) {
     }
 
     if (idle_timeout == 0) {
-        idle_timeout = 60 * 1000;
+        idle_timeout = 60;
     }
 }
 
