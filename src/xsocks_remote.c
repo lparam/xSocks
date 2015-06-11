@@ -20,12 +20,16 @@ remote_timer_expire(uv_timer_t *handle) {
     struct remote_context *remote = handle->data;
     struct client_context *client = remote->client;
     if (verbose) {
-        char addrbuf[INET6_ADDRSTRLEN + 1] = {0};
-        uint16_t port = ip_name(&client->addr, addrbuf, sizeof addrbuf);
-        if (client->stage < XSTAGE_FORWARD) {
-            logger_log(LOG_WARNING, "%s:%d connection timeout", addrbuf, port);
+        if (client->cmd == S5_CMD_UDP_ASSOCIATE) {
+            logger_log(LOG_WARNING, "udp assocation timeout");
         } else {
-            logger_log(LOG_WARNING, "%s:%d <-> %s connection timeout", addrbuf, port, client->target_addr);
+            char addrbuf[INET6_ADDRSTRLEN + 1] = {0};
+            uint16_t port = ip_name(&client->addr, addrbuf, sizeof addrbuf);
+            if (client->stage < XSTAGE_FORWARD) {
+                logger_log(LOG_WARNING, "%s:%d connection timeout", addrbuf, port);
+            } else {
+                logger_log(LOG_WARNING, "%s:%d <-> %s connection timeout", addrbuf, port, client->target_addr);
+            }
         }
     }
 
