@@ -52,7 +52,7 @@ new_remote(uint16_t timeout) {
     memset(remote, 0, sizeof(*remote));
     remote->stage = XSTAGE_HANDSHAKE;
     remote->timer = malloc(sizeof(uv_timer_t));
-    remote->idle_timeout = timeout;
+    remote->idle_timeout = timeout * 1000;
     return remote;
 }
 

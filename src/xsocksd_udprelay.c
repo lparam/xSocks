@@ -53,7 +53,7 @@ timer_close_cb(uv_handle_t *handle) {
 static void
 reset_timer(struct target_context *target) {
     target->timer->data = target;
-    uv_timer_start(target->timer, timer_expire, idle_timeout, 0);
+    uv_timer_start(target->timer, timer_expire, idle_timeout * 1000, 0);
 }
 
 

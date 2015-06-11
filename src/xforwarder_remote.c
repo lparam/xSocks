@@ -51,7 +51,7 @@ new_remote(uint16_t timeout) {
     struct remote_context *remote = malloc(sizeof(*remote));
     memset(remote, 0, sizeof(*remote));
     remote->timer = malloc(sizeof(uv_timer_t));
-    remote->idle_timeout = timeout;
+    remote->idle_timeout = timeout * 1000;
     return remote;
 }
 

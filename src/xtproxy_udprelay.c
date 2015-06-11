@@ -50,7 +50,7 @@ timer_close_cb(uv_handle_t *handle) {
 static void
 reset_timer(struct client_context *client) {
     client->timer->data = client;
-    uv_timer_start(client->timer, timer_expire, idle_timeout, 0);
+    uv_timer_start(client->timer, timer_expire, idle_timeout * 1000, 0);
 }
 
 static struct client_context *
