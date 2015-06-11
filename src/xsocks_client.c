@@ -129,13 +129,16 @@ request_ack(struct client_context *client, enum s5_rep rep) {
         buflen = 10;
     }
 
-    if (rep == S5_REP_SUCCESSED && client->cmd == S5_CMD_CONNECT) {
-        client->stage = XSTAGE_FORWARD;
+    if (rep == S5_REP_SUCCESSED) {
+        if (client->cmd == S5_CMD_CONNECT) {
+            client->stage = XSTAGE_FORWARD;
+        } else {
+            client->stage = XSTAGE_UDP_RELAY;
+        }
     } else {
         client->stage = XSTAGE_TERMINATE;
     }
 
-    // TODO: handle server can't connect but cmd is udp associate case
     forward_to_client(client, buf, buflen);
 }
 
@@ -157,6 +160,11 @@ request_start(struct client_context *client, char *req_buf) {
     if (req->cmd != S5_CMD_CONNECT && req->cmd != S5_CMD_UDP_ASSOCIATE) {
         logger_log(LOG_ERR, "unsupported cmd: 0x%02x", req->cmd);
         request_ack(client, S5_REP_CMD_NOT_SUPPORTED);
+        return;
+    }
+
+    if (req->cmd == S5_CMD_UDP_ASSOCIATE) {
+        request_ack(client, S5_REP_SUCCESSED);
         return;
     }
 
