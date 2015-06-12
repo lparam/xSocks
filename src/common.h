@@ -16,6 +16,7 @@ struct server_context {
     uv_sem_t semaphore;
     uv_async_t async_handle;
     uv_thread_t thread_id;
+    int resolver;
     int nameserver_num;
     char **nameservers;
     uv_connection_cb accept_cb;

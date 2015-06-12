@@ -61,5 +61,6 @@ void close_loop(uv_loop_t *loop);
 
 int verbose;
 uint16_t idle_timeout;
+uv_key_t thread_resolver_key;
 
 #endif // for #ifndef _XSOCKSD_H

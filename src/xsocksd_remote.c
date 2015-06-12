@@ -165,9 +165,17 @@ resolve_cb(struct sockaddr *addr, void *data) {
 
 void
 resolve_remote(struct remote_context *remote, char *host, uint16_t port) {
-    struct resolver_context *ctx = remote->handle.handle.loop->data;
+    if (verbose) {
+        logger_log(LOG_INFO, "resolve %s", host);
+    }
+    struct resolver_context *dns = uv_key_get(&thread_resolver_key);
     remote->stage = XSTAGE_RESOLVE;
-    remote->host_query = resolver_query(ctx, host, port, resolve_cb, remote);
+    remote->host_query = resolver_query(dns, host, port, resolve_cb, remote);
+    if (remote->host_query == NULL) {
+        remote->stage = XSTAGE_TERMINATE;
+        close_client(remote->client);
+        close_remote(remote);
+    }
 }
 
 static void

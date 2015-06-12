@@ -305,7 +305,6 @@ main(int argc, char *argv[]) {
             ctx->udp_fd = create_socket(SOCK_DGRAM, 1);
             ctx->udprelay = 1;
             ctx->accept_cb = client_accept_cb;
-            ctx->nameserver_num = -1;
             ctx->dest_addr = &dest_addr;
             ctx->local_addr = &bind_addr;
             ctx->server_addr = &server_addr;

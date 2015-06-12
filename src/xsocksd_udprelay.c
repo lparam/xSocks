@@ -24,7 +24,7 @@ struct target_context {
     struct sockaddr         dest_addr;
     uint16_t                dest_port;
     uv_timer_t             *timer;
-    struct resolver_query  *addr_query;
+    struct resolver_query  *host_query;
     int                     header_len;
     uint8_t                *buf;
     ssize_t                 buflen;
@@ -33,6 +33,7 @@ struct target_context {
 
 extern int verbose;
 extern uint16_t idle_timeout;
+extern uv_key_t thread_resolver_key;
 static uv_mutex_t mutex;
 static struct cache *cache;
 
@@ -245,14 +246,17 @@ resolve_cb(struct sockaddr *addr, void *data) {
         forward_to_target(target, target->buf, target->buflen);
 
     } else {
-        logger_stderr("resolve failed.");
+        logger_log(LOG_ERR, "resolve failed: %s", resolver_error(target->host_query));
     }
 }
 
 static void
-resolve_target(struct target_context *target, char *addr, uint16_t port) {
-    struct resolver_context *ctx = target->server_handle->loop->data;
-    target->addr_query = resolver_query(ctx, addr, port, resolve_cb, target);
+resolve_target(struct target_context *target, char *host, uint16_t port) {
+    if (verbose) {
+        logger_log(LOG_INFO, "resolve %s", host);
+    }
+    struct resolver_context *dns = uv_key_get(&thread_resolver_key);
+    target->host_query = resolver_query(dns, host, port, resolve_cb, target);
 }
 
 static void

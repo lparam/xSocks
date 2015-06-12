@@ -14,6 +14,7 @@ struct resolver_context *
 resolver_init(uv_loop_t *loop, int mode, char **nameservers, int nameserver_num) __attribute__((weak));
 void resolver_shutdown(struct resolver_context *rctx) __attribute__((weak));
 void resolver_destroy(struct resolver_context *ctx) __attribute__((weak));
+uv_key_t thread_resolver_key __attribute__((weak));
 
 int udprelay_start(uv_loop_t *loop, struct server_context *server) __attribute__((weak));
 void udprelay_close(struct server_context *server) __attribute__((weak));
@@ -32,9 +33,9 @@ consumer_close(uv_async_t *handle) {
         udprelay_close(server);
     }
 
-    if (server->nameserver_num >= 0) {
-        struct resolver_context *res = handle->loop->data;
-        resolver_shutdown(res);
+    if (server->resolver) {
+        struct resolver_context *dns = uv_key_get(&thread_resolver_key);
+        resolver_shutdown(dns);
     }
 }
 
@@ -82,11 +83,12 @@ consumer_start(void *arg) {
 
     uv_loop_init(&loop);
 
-    struct resolver_context *res = NULL;
-    if (server->nameserver_num >= 0) {
+    struct resolver_context *dns = NULL;
+    if (server->resolver) {
         char **servers = server->nameserver_num == 0 ? NULL : server->nameservers;
-        res = resolver_init(&loop, 0, servers, server->nameserver_num);
-        loop.data = res;
+        dns = resolver_init(&loop, 0, servers, server->nameserver_num);
+        uv_key_create(&thread_resolver_key);
+        uv_key_set(&thread_resolver_key, dns);
     }
 
     tcp_bind(&loop, server);
@@ -99,8 +101,9 @@ consumer_start(void *arg) {
 
     close_loop(&loop);
 
-    if (server->nameserver_num >= 0) {
-        resolver_destroy(res);
+    if (server->resolver) {
+        resolver_destroy(dns);
+        uv_key_delete(&thread_resolver_key);
     }
 
     uv_sem_post(&server->semaphore);

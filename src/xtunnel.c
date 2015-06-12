@@ -293,7 +293,6 @@ main(int argc, char *argv[]) {
             ctx->index = i;
             ctx->tcp_fd = create_socket(SOCK_STREAM, 1);
             ctx->accept_cb = source_accept_cb;
-            ctx->nameserver_num = -1;
             ctx->local_addr = &bind_addr;
             rc = uv_sem_init(&ctx->semaphore, 0);
             rc = uv_thread_create(&ctx->thread_id, consumer_start, ctx);
