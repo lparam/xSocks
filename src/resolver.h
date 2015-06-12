@@ -23,6 +23,6 @@ struct resolver_query * resolver_query(struct resolver_context *ctx, const char 
 void resolver_cancel(struct resolver_query *);
 void resolver_shutdown(struct resolver_context *ctx);
 void resolver_destroy(struct resolver_context *ctx);
-const char * resolver_lasterror(struct resolver_query *query);
+const char * resolver_error(struct resolver_query *query);
 
 #endif // for #ifndef _RESOLVER_H
