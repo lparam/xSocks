@@ -34,7 +34,7 @@ void
 reset_timer(struct remote_context *remote) {
     if (remote->timer != NULL) {
         remote->timer->data = remote;
-        uv_timer_start(remote->timer, remote_timer_expire, remote->idle_timeout, 0);
+        uv_timer_start(remote->timer, remote_timer_expire, remote->idle_timeout * 1000, 0);
     }
 }
 
@@ -48,7 +48,7 @@ new_remote(uint16_t timeout) {
     struct remote_context *remote = malloc(sizeof(*remote));
     memset(remote, 0, sizeof(*remote));
     remote->timer = malloc(sizeof(uv_timer_t));
-    remote->idle_timeout = timeout * 1000;
+    remote->idle_timeout = timeout;
     return remote;
 }
 
@@ -149,7 +149,7 @@ resolve_cb(struct sockaddr *addr, void *data) {
 
     if (addr == NULL) {
         logger_log(LOG_ERR, "resolve %s failed: %s",
-          remote->client->target_addr, resolver_lasterror(remote->host_query));
+          remote->client->target_addr, resolver_error(remote->host_query));
         remote->stage = XSTAGE_TERMINATE;
         close_client(remote->client);
         close_remote(remote);
