@@ -20,6 +20,7 @@
 static int daemon_mode = 1;
 static int concurrency;
 static int nameserver_num;
+static int udprelay;
 static char *nameservers[MAX_DNS_NUM + 1];
 static char *local_addrbuf = "0.0.0.0:1073";
 static char *pidfile = "/var/run/xsocks/xsocksd.pid";
@@ -29,7 +30,7 @@ static char *xsignal;
 static struct signal_ctx signals[3];
 #endif
 
-static const char *_optString = "l:k:c:d:p:t:nVvh";
+static const char *_optString = "l:k:c:d:p:t:unVvh";
 static const struct option _lopts[] = {
     { "",        required_argument,   NULL, 'p' },
     { "",        required_argument,   NULL, 'c' },
@@ -37,6 +38,7 @@ static const struct option _lopts[] = {
     { "",        required_argument,   NULL, 't' },
     { "",        required_argument,   NULL, 'k' },
     { "signal",  required_argument,   NULL,  0  },
+    { "",        no_argument,   NULL, 'u' },
     { "",        no_argument,   NULL, 'n' },
     { "version", no_argument,   NULL, 'v' },
     { "help",    no_argument,   NULL, 'h' },
@@ -53,6 +55,7 @@ print_usage(const char *prog) {
          "  [-l <bind address>]\t : bind address:port (default: 0.0.0.0:1073)\n"
          "  [-d <dns>]\t\t : name servers for internal DNS resolver\n"
          "  [-t <timeout>]\t : connection timeout in senconds\n"
+         "  [-u]\t\t\t : enable udp relay\n"
 #ifndef _WIN32
          "  [-c <concurrency>]\t : worker threads\n"
          "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xsocksd.pid)\n"
@@ -96,6 +99,9 @@ parse_opts(int argc, char *argv[]) {
             break;
         case 'p':
             pidfile = optarg;
+            break;
+        case 'u':
+            udprelay = 1;
             break;
         case 'n':
             daemon_mode = 0;
@@ -166,7 +172,9 @@ signal_cb(uv_signal_t *handle, int signum) {
             resolver_shutdown(dns);
             struct server_context *ctx = handle->data;
             uv_close((uv_handle_t *)&ctx->tcp, NULL);
-            udprelay_close(ctx);
+            if (ctx->udprelay) {
+                udprelay_close(ctx);
+            }
         }
     }
     if (signum == SIGTERM) {
@@ -257,12 +265,14 @@ main(int argc, char *argv[]) {
         return 1;
     }
 
-    udprelay_init();
+    if (udprelay) {
+        udprelay_init();
+    }
 
     if (concurrency <= 1) {
         struct server_context ctx;
         ctx.local_addr = &local_addr;
-        ctx.udprelay = 1;
+        ctx.udprelay = udprelay;
         ctx.resolver = 1;
         ctx.udp_fd = create_socket(SOCK_DGRAM, 0);
 
@@ -287,7 +297,9 @@ main(int argc, char *argv[]) {
             uv_key_create(&thread_resolver_key);
             uv_key_set(&thread_resolver_key, dns);
 
-            udprelay_start(loop, &ctx);
+            if (udprelay) {
+                udprelay_start(loop, &ctx);
+            }
 
             uv_run(loop, UV_RUN_DEFAULT);
 
@@ -307,7 +319,7 @@ main(int argc, char *argv[]) {
             ctx->index = i;
             ctx->tcp_fd = create_socket(SOCK_STREAM, 1);
             ctx->udp_fd = create_socket(SOCK_DGRAM, 1);
-            ctx->udprelay = 1;
+            ctx->udprelay = udprelay;
             ctx->resolver = 1;
             ctx->accept_cb = client_accept_cb;
             ctx->nameservers = nameservers;
@@ -335,7 +347,9 @@ main(int argc, char *argv[]) {
 #endif
     }
 
-    udprelay_destroy();
+    if (udprelay) {
+        udprelay_destroy();
+    }
 
 #ifndef _WIN32
     if (daemon_mode) {
