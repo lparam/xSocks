@@ -2,6 +2,7 @@
 #define _COMMON_H
 
 #include "uv.h"
+#include "socks.h"
 
 #define XSOCKS_VERSION      "0.2.1"
 
@@ -32,5 +33,7 @@ struct signal_ctx {
 
 int signal_process(char *signal, const char *pidfile);
 void consumer_start(void *arg);
+int parse_target_address(const struct xsocks_request *req, struct sockaddr *addr, char *host);
+void cache_log(uint8_t atyp, const struct sockaddr *src_addr, const struct sockaddr *dst_addr, const char *host, uint16_t port, int hit);
 
 #endif // for #ifndef _COMMON_H
