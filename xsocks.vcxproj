@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\cache.c" />
+    <ClCompile Include="src\common.c" />
     <ClCompile Include="src\crypto.c" />
     <ClCompile Include="src\getopt.c" />
     <ClCompile Include="src\logger.c" />
