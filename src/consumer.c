@@ -87,7 +87,6 @@ consumer_start(void *arg) {
     if (server->resolver) {
         char **servers = server->nameserver_num == 0 ? NULL : server->nameservers;
         dns = resolver_init(&loop, 0, servers, server->nameserver_num);
-        uv_key_create(&thread_resolver_key);
         uv_key_set(&thread_resolver_key, dns);
     }
 
@@ -103,7 +102,6 @@ consumer_start(void *arg) {
 
     if (server->resolver) {
         resolver_destroy(dns);
-        uv_key_delete(&thread_resolver_key);
     }
 
     uv_sem_post(&server->semaphore);
