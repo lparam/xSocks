@@ -16,7 +16,7 @@ Features
 * Multithreading
 * Cross-platform, including PC (Linux, [Windows](https://github.com/lparam/xsocks-windows)), Mobile ([Android](https://github.com/lparam/xsocks-android)) and Router (OpenWRT)
 
-Installation
+BUILD
 ------------
 
 ### Linux
