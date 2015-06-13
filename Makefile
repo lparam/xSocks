@@ -52,6 +52,7 @@ endif
 
 CFLAGS = \
 	-Os	\
+	-g \
 	-std=gnu99 \
 	-Wall \
 	$(PLATFORM_CFLAGS)
@@ -135,6 +136,7 @@ ifndef MINGW32
 xsocksd: \
 	src/util.o \
 	src/logger.o \
+	src/common.o \
 	src/crypto.o \
 	src/resolver.o \
 	src/daemon.o \
@@ -151,6 +153,7 @@ else
 xsocksd.exe: \
 	src/util.o \
 	src/logger.o \
+	src/common.o \
 	src/crypto.o \
 	src/resolver.o \
 	src/consumer.o \
@@ -167,6 +170,7 @@ ifndef MINGW32
 xsocks: \
 	src/util.o \
 	src/logger.o \
+	src/common.o \
 	src/crypto.o \
 	src/daemon.o \
 	src/signal.o \
@@ -182,6 +186,7 @@ else
 xsocks.exe: \
 	src/util.o \
 	src/logger.o \
+	src/common.o \
 	src/crypto.o \
 	src/consumer.o \
 	src/cache.o \
