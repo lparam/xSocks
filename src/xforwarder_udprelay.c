@@ -25,10 +25,14 @@ struct client_context {
 };
 
 extern uint16_t idle_timeout;
-static uv_mutex_t mutex;
-static struct cache *cache;
-static int addrlen = 7;
+static int addrlen = IPV4_HEADER_LEN;
 
+static void free_cb(void *element);
+static int select_cb(void *element, void *opaque);
+static void client_alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
+static void client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags);
+
+#include "udprelay.c"
 
 static void
 timer_expire(uv_timer_t *handle) {
@@ -89,7 +93,7 @@ server_alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
 static void
 client_send_cb(uv_udp_send_t *req, int status) {
     if (status) {
-        logger_log(LOG_ERR, "forward to client failed: %s", uv_strerror(status));
+        logger_log(LOG_ERR, "[udp] forward to client failed: %s", uv_strerror(status));
     }
     uv_buf_t *buf = (uv_buf_t *)(req + 1);
     free(buf->base);
@@ -149,7 +153,7 @@ err:
 static void
 server_send_cb(uv_udp_send_t *req, int status) {
     if (status) {
-        logger_log(LOG_ERR, "forward to server failed: %s", uv_strerror(status));
+        logger_log(LOG_ERR, "[udp] forward to server failed: %s", uv_strerror(status));
     }
     uv_buf_t *buf = (uv_buf_t *)(req + 1);
     free(buf->base);
@@ -179,6 +183,9 @@ forward_to_server(struct sockaddr *server_addr, struct client_context *client, u
 static void
 client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
     struct server_context *server = container_of(handle, struct server_context, udp);
+    if (server->dest_addr->sa_family == AF_INET6) {
+        addrlen = IPV6_HEADER_LEN;
+    }
     if (nread > 0) {
         char key[KEY_BYTES + 1] = {0};
         crypto_generickey((uint8_t *)key, sizeof(key) -1, (uint8_t*)addr, sizeof(*addr), NULL, 0);
@@ -248,51 +255,4 @@ select_cb(void *element, void *opaque) {
         return 1;
     }
     return 0;
-}
-
-int
-udprelay_init() {
-    uv_mutex_init(&mutex);
-    cache_create(&cache, 1024, free_cb);
-    return 0;
-}
-
-int
-udprelay_start(uv_loop_t *loop, struct server_context *server) {
-    int rc;
-
-    if (server->dest_addr->sa_family == AF_INET6) {
-        addrlen = IPV6_HEADER_LEN;
-    }
-
-    uv_udp_init(loop, &server->udp);
-
-    if ((rc = uv_udp_open(&server->udp, server->udp_fd))) {
-        logger_stderr("udp open error: %s", uv_strerror(rc));
-        return 1;
-    }
-
-    rc = uv_udp_bind(&server->udp, server->local_addr, UV_UDP_REUSEADDR);
-    if (rc) {
-        logger_stderr("bind error: %s", uv_strerror(rc));
-        return 1;
-    }
-
-    uv_udp_recv_start(&server->udp, client_alloc_cb, client_recv_cb);
-
-    return 0;
-}
-
-void
-udprelay_close(struct server_context *server) {
-    uv_close((uv_handle_t *)&server->udp, NULL);
-    uv_mutex_lock(&mutex);
-    cache_removeall(cache, server->udp.loop, select_cb);
-    uv_mutex_unlock(&mutex);
-}
-
-void
-udprelay_destroy() {
-    uv_mutex_destroy(&mutex);
-    free(cache);
 }
