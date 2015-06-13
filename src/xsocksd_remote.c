@@ -6,7 +6,6 @@
 #include <pthread.h>
 
 #include "uv.h"
-
 #include "util.h"
 #include "logger.h"
 #include "crypto.h"
@@ -24,7 +23,11 @@ remote_timer_expire(uv_timer_t *handle) {
     if (verbose) {
         char addrbuf[INET6_ADDRSTRLEN + 1] = {0};
         uint16_t port = ip_name(&client->addr, addrbuf, sizeof addrbuf);
-        logger_log(LOG_WARNING, "%s:%d <-> %s connection timeout", addrbuf, port, client->target_addr);
+        if (client->stage < XSTAGE_FORWARD) {
+            logger_log(LOG_WARNING, "%s:%d connection timeout", addrbuf, port);
+        } else {
+            logger_log(LOG_WARNING, "%s:%d <-> %s connection timeout", addrbuf, port, client->target_addr);
+        }
     }
     close_client(remote->client);
     close_remote(remote);

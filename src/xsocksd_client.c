@@ -4,7 +4,6 @@
 #include <assert.h>
 
 #include "uv.h"
-
 #include "util.h"
 #include "logger.h"
 #include "crypto.h"
@@ -155,6 +154,7 @@ request_start(struct client_context *client) {
         close_remote(remote);
         return 1;
     }
+    assert(strlen(client->target_addr) > 2);
 
     switch (request->atyp) {
         case ATYP_IPV4:

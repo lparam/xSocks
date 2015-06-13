@@ -24,12 +24,14 @@
 struct client_context {
     int bind_server;
     struct sockaddr addr;
+    struct sockaddr dest_addr;
     uv_udp_t server_handle;
     uv_udp_t *dest_handle;
     uv_timer_t *timer;
     char key[KEY_BYTES + 1];
 };
 
+extern int verbose;
 extern uint16_t idle_timeout;
 static uv_mutex_t mutex;
 static struct cache *cache;
@@ -90,16 +92,23 @@ server_alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
 static void
 client_send_cb(uv_udp_send_t *req, int status) {
     if (status) {
-        logger_log(LOG_ERR, "forward to client failed: %s", uv_strerror(status));
+        logger_log(LOG_ERR, "[udp] forward to client failed: %s", uv_strerror(status));
     }
     uv_buf_t *buf = (uv_buf_t *)(req + 1);
     free(buf->base);
     free(req);
 }
 
-
 static void
 forward_to_client(struct client_context *client, uint8_t *data, ssize_t len) {
+    if (verbose) {
+        char src[INET6_ADDRSTRLEN + 1] = {0};
+        char dst[INET6_ADDRSTRLEN + 1] = {0};
+        uint16_t dst_port = 0, src_port = 0;
+        src_port = ip_name(&client->dest_addr, src, sizeof src);
+        dst_port = ip_name(&client->addr, dst, sizeof dst);
+        logger_log(LOG_INFO, "%s:%d <- %s:%d", dst, dst_port, src, src_port);
+    }
     uv_udp_send_t *write_req = malloc(sizeof(*write_req) + sizeof(uv_buf_t));
     uv_buf_t *buf = (uv_buf_t *)(write_req + 1);
     buf->base = (char *)data;
@@ -191,7 +200,7 @@ err:
 static void
 server_send_cb(uv_udp_send_t *req, int status) {
     if (status) {
-        logger_log(LOG_ERR, "forward to server failed: %s", uv_strerror(status));
+        logger_log(LOG_ERR, "[udp] forward to server failed: %s", uv_strerror(status));
     }
     uv_buf_t *buf = (uv_buf_t *)(req + 1);
     free(buf->base);
@@ -200,6 +209,14 @@ server_send_cb(uv_udp_send_t *req, int status) {
 
 static void
 forward_to_server(struct sockaddr *server_addr, struct client_context *client, uint8_t *data, ssize_t datalen) {
+    if (verbose) {
+        char src[INET6_ADDRSTRLEN + 1] = {0};
+        char dst[INET6_ADDRSTRLEN + 1] = {0};
+        uint16_t dst_port = 0, src_port = 0;
+        src_port = ip_name(&client->addr, src, sizeof src);
+        dst_port = ip_name(&client->dest_addr, dst, sizeof dst);
+        logger_log(LOG_INFO, "%s:%d -> %s:%d", src, src_port, dst, dst_port);
+    }
     uv_udp_send_t *write_req = malloc(sizeof(*write_req) + sizeof(uv_buf_t));
     uv_buf_t *buf = (uv_buf_t *)(write_req + 1);
     buf->base = (char *)data;
@@ -320,6 +337,7 @@ poll_cb(uv_poll_t *watcher, int status, int events) {
                 uv_mutex_unlock(&mutex);
             }
 
+            client->dest_addr = dest_addr;
             reset_timer(client);
             forward_to_server(server->server_addr, client, c, clen);
         }

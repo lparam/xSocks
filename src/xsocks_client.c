@@ -269,7 +269,11 @@ client_send_cb(uv_write_t *req, int status) {
     } else {
         char addrbuf[INET6_ADDRSTRLEN + 1] = {0};
         int port = ip_name(&client->addr, addrbuf, sizeof addrbuf);
-        logger_log(LOG_ERR, "%s -> %s:%d failed: %s", client->target_addr, addrbuf, port, uv_strerror(status));
+        if (client->stage == XSTAGE_FORWARD) {
+            logger_log(LOG_ERR, "%s:%d <- %s failed: %s", addrbuf, port, client->target_addr, uv_strerror(status));
+        } else {
+            logger_log(LOG_ERR, "forward to %s:%d failed: %s", addrbuf, port, uv_strerror(status));
+        }
     }
 
     free(req);
