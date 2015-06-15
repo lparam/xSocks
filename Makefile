@@ -88,7 +88,7 @@ endif
 LIBS += 3rd/libuv/.libs/libuv.a 3rd/libsodium/src/libsodium/.libs/libsodium.a
 
 ifdef MINGW32
-LIBS += -lws2_32 -lpsapi -liphlpapi
+LIBS += -lws2_32 -lpsapi -liphlpapi -luserenv
 else
 LIBS += -pthread -ldl
 endif
