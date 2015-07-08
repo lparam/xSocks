@@ -43,6 +43,7 @@ tags
 *.sdf
 *.suo
 *.user
+.ycm_extra_conf.pyc
 
 /xsocksd
 /xsocks
