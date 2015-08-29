@@ -75,7 +75,7 @@ consumer_start(void *arg) {
     exit(1);
 #endif
 
-#ifndef CROSS_COMPILE
+#ifdef __linux__
     char name[24] = {0};
     sprintf(name, "consumer-%d", server->index + 1);
     pthread_setname_np(pthread_self(), name);
