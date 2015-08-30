@@ -42,7 +42,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xtproxy Version: %s Maintained by Ken <ken.i18n@gmail.com>\n", XTPROXY_VER);
+    printf("xtproxy Version: %s Maintained by lparam\n", XTPROXY_VER);
     printf("Usage: %s <-l local> <-s server> <-k password> [-p pidfile] [-c concurrency] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -h, --help\t\t : this help\n"

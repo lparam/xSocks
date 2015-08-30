@@ -47,7 +47,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xsocks Version: %s Maintained by Ken <ken.i18n@gmail.com>\n", XSOCKS_VER);
+    printf("xsocks Version: %s Maintained by lparam\n", XSOCKS_VER);
 #ifdef _WIN32
     printf("Usage: %s [-l local] <-s server> <-k password> [-hvV]\n\n", prog);
 #else

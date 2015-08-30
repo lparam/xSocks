@@ -42,7 +42,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xforwarder Version: %s Maintained by Ken <ken.i18n@gmail.com>\n", XFORWARDER_VER);
+    printf("xforwarder Version: %s Maintained by lparam\n", XFORWARDER_VER);
     printf("Usage: %s [-l local] <-s server> <-d dest> <-k password> [-p pidfile] [-c concurrency] [-s signal] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -s <server address>\t : server address:port\n"

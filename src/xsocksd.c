@@ -48,7 +48,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xsocksd Version: %s Maintained by Ken <ken.i18n@gmail.com>\n", XSOCKSD_VER);
+    printf("xsocksd Version: %s Maintained by lparam\n", XSOCKSD_VER);
     printf("Usage: %s [-l bind] <-k password> [-p pidfile] [-c concurrency] [-t timeout] [-s signal] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -k <password>\t\t : password of server\n"

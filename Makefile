@@ -1,8 +1,3 @@
-#
-# (C) Copyright 2000-2015
-# Ken <ken.i18n@gmail.com>
-#
-
 MAJOR = 0
 MINOR = 2
 PATCH = 1

@@ -43,7 +43,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xtunnel Version: %s Maintained by Ken <ken.i18n@gmail.com>\n", TUNNEL_VER);
+    printf("xtunnel Version: %s Maintained by lparam\n", TUNNEL_VER);
     printf("Usage: %s <-m mode> <-l local> <-t target> <-k password>\n", prog);
     printf("\t[-c concurrency] [-p pidfile] [-nVhv]\n\n");
     printf("Options:\n");
