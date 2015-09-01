@@ -76,9 +76,11 @@ consumer_start(void *arg) {
 #endif
 
 #ifdef __linux__
+#ifndef CROSS_COMPILE
     char name[24] = {0};
     sprintf(name, "consumer-%d", server->index + 1);
     pthread_setname_np(pthread_self(), name);
+#endif
 #endif
 
     uv_loop_init(&loop);
