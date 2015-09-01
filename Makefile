@@ -1,6 +1,6 @@
 MAJOR = 0
 MINOR = 2
-PATCH = 2
+PATCH = 3
 NAME = xsocks
 
 ifdef O

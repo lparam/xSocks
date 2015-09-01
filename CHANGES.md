@@ -1,3 +1,8 @@
+v0.2.3 (2015-9-01)
+-----------
+* Fix: Don't use pthread_setname_p under non linux platform
+
+
 v0.2.2 (2015-9-01)
 -----------
 * Feature: Add Connection Timeout
