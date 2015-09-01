@@ -6,7 +6,6 @@
 #include <pthread.h>
 
 #include "uv.h"
-
 #include "util.h"
 #include "logger.h"
 #include "crypto.h"
@@ -24,7 +23,11 @@ remote_timer_expire(uv_timer_t *handle) {
     if (verbose) {
         char addrbuf[INET6_ADDRSTRLEN + 1] = {0};
         uint16_t port = ip_name(&client->addr, addrbuf, sizeof addrbuf);
-        logger_log(LOG_WARNING, "%s:%d <-> %s connection timeout", addrbuf, port, client->target_addr);
+        if (client->stage < XSTAGE_FORWARD) {
+            logger_log(LOG_WARNING, "%s:%d connection timeout", addrbuf, port);
+        } else {
+            logger_log(LOG_WARNING, "%s:%d <-> %s connection timeout", addrbuf, port, client->target_addr);
+        }
     }
     close_client(remote->client);
     close_remote(remote);
@@ -34,7 +37,7 @@ void
 reset_timer(struct remote_context *remote) {
     if (remote->timer != NULL) {
         remote->timer->data = remote;
-        uv_timer_start(remote->timer, remote_timer_expire, remote->idle_timeout, 0);
+        uv_timer_start(remote->timer, remote_timer_expire, remote->idle_timeout * 1000, 0);
     }
 }
 
@@ -149,7 +152,7 @@ resolve_cb(struct sockaddr *addr, void *data) {
 
     if (addr == NULL) {
         logger_log(LOG_ERR, "resolve %s failed: %s",
-          remote->client->target_addr, resolver_lasterror(remote->host_query));
+          remote->client->target_addr, resolver_error(remote->host_query));
         remote->stage = XSTAGE_TERMINATE;
         close_client(remote->client);
         close_remote(remote);
@@ -165,9 +168,17 @@ resolve_cb(struct sockaddr *addr, void *data) {
 
 void
 resolve_remote(struct remote_context *remote, char *host, uint16_t port) {
-    struct resolver_context *ctx = remote->handle.handle.loop->data;
+    if (verbose) {
+        logger_log(LOG_INFO, "resolve %s", host);
+    }
+    struct resolver_context *dns = uv_key_get(&thread_resolver_key);
     remote->stage = XSTAGE_RESOLVE;
-    remote->host_query = resolver_query(ctx, host, port, resolve_cb, remote);
+    remote->host_query = resolver_query(dns, host, port, resolve_cb, remote);
+    if (remote->host_query == NULL) {
+        remote->stage = XSTAGE_TERMINATE;
+        close_client(remote->client);
+        close_remote(remote);
+    }
 }
 
 static void

@@ -28,13 +28,14 @@ static char *xsignal;
 static struct signal_ctx signals[3];
 #endif
 
-static const char *_optString = "l:c:d:p:t:k:s:nVvh";
+static const char *_optString = "l:c:p:t:k:s:nVvh";
 static const struct option _lopts[] = {
     { "",        required_argument,   NULL, 'p' },
     { "",        required_argument,   NULL, 'c' },
     { "",        required_argument,   NULL, 'd' },
-    { "",        required_argument,   NULL, 'l' },
     { "",        required_argument,   NULL, 'k' },
+    { "",        required_argument,   NULL, 'l' },
+    { "",        required_argument,   NULL, 't' },
     { "",        required_argument,   NULL, 's' },
     { "",        no_argument,         NULL, 'n' },
     { "signal",  required_argument,   NULL,  0  },
@@ -46,16 +47,17 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xsocks Version: %s Maintained by Ken <ken.i18n@gmail.com>\n", XSOCKS_VER);
+    printf("xsocks Version: %s Maintained by lparam\n", XSOCKS_VER);
 #ifdef _WIN32
-    printf("Usage: %s [-l local] <-t server> <-k password> [-hvV]\n\n", prog);
+    printf("Usage: %s [-l local] <-s server> <-k password> [-hvV]\n\n", prog);
 #else
-    printf("Usage: %s [-l local] <-t server> <-k password> [-p pidfile] [-c concurrency] [-s signal] [-nhvV]\n\n", prog);
+    printf("Usage: %s [-l local] <-s server> <-k password> [-p pidfile] [-c concurrency] [-s signal] [-nhvV]\n\n", prog);
 #endif
     printf("Options:\n");
     puts("  -s <server address>\t : server address:port\n"
          "  -k <password>\t\t : password of server\n"
          "  [-l <bind address>]\t : bind address:port (default: 0.0.0.0:1080)\n"
+         "  [-t <timeout>]\t : connection timeout in senconds\n"
 #ifndef _WIN32
          "  [-c <concurrency>]\t : worker threads\n"
          "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xsocks.pid)\n"
@@ -101,8 +103,8 @@ parse_opts(int argc, char *argv[]) {
         case 'n':
             daemon_mode = 0;
             break;
-        case 'z':
-            idle_timeout = strtol(optarg, NULL, 10) * 1000;
+        case 't':
+            idle_timeout = strtol(optarg, NULL, 10);
             break;
         case 'V':
             verbose = 1;
@@ -210,7 +212,7 @@ init(void) {
     }
 
     if (idle_timeout == 0) {
-        idle_timeout = 60 * 1000;
+        idle_timeout = 60;
     }
 }
 
@@ -303,7 +305,6 @@ main(int argc, char *argv[]) {
             ctx->udp_fd = create_socket(SOCK_DGRAM, 1);
             ctx->udprelay = 1;
             ctx->accept_cb = client_accept_cb;
-            ctx->nameserver_num = -1;
             ctx->local_addr = &bind_addr;
             ctx->server_addr = &server_addr;
             rc = uv_sem_init(&ctx->semaphore, 0);

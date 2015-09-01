@@ -16,7 +16,7 @@ Features
 * Multithreading
 * Cross-platform, including PC (Linux, [Windows](https://github.com/lparam/xsocks-windows)), Mobile ([Android](https://github.com/lparam/xsocks-android)) and Router (OpenWRT)
 
-Installation
+BUILD
 ------------
 
 ### Linux
@@ -29,12 +29,17 @@ make && sudo make install
 
 ```bash
 # At OpenWRT build root
-cd package
-git clone https://github.com/lparam/xsocks.git
-cd ..
-
-# Build the package
+git clone https://github.com/lparam/xsocks.git package/xsocks
 make package/xsocks/openwrt/compile
+```
+
+### Windows
+
+```bash
+# win32
+make mingw32 HOST=i686-w64-mingw32
+# win64
+make mingw32 HOST=x86_64-w64-mingw32
 ```
 
 Usage
@@ -71,9 +76,10 @@ Proxy all tcp traffic and udp packet transparently on gateway.
 
 ```bash
 root@OpenWrt:~# opkg install iptables-mod-tproxy
+root@OpenWrt:~# opkg install xsocks_VER_ARCH.ipk
 ```
 
-/etc/init.d/xsocks
+Modify your SERVER and PASSWORD in /etc/init.d/xsocks
 ```bash
 #!/bin/sh /etc/rc.common
 # Copyright (C) 2006-2014 OpenWrt.org
@@ -152,7 +158,7 @@ root@OpenWrt:~# ipset add SETNAME IP
 
 ## License
 
-Copyright (C) 2014 Ken <ken.i18n@gmail.com>
+Copyright (C) 2014 lparam
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

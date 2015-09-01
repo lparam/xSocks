@@ -2,7 +2,6 @@
 #include <string.h>
 
 #include "uv.h"
-
 #include "util.h"
 #include "logger.h"
 #include "common.h"
@@ -24,7 +23,7 @@ struct target_context {
     struct sockaddr         dest_addr;
     uint16_t                dest_port;
     uv_timer_t             *timer;
-    struct resolver_query  *addr_query;
+    struct resolver_query  *host_query;
     int                     header_len;
     uint8_t                *buf;
     ssize_t                 buflen;
@@ -33,9 +32,14 @@ struct target_context {
 
 extern int verbose;
 extern uint16_t idle_timeout;
-static uv_mutex_t mutex;
-static struct cache *cache;
+extern uv_key_t thread_resolver_key;
 
+static void free_cb(void *element);
+static int select_cb(void *element, void *opaque);
+static void client_alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
+static void client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags);
+
+#include "udprelay.c"
 
 static void
 timer_expire(uv_timer_t *handle) {
@@ -53,7 +57,7 @@ timer_close_cb(uv_handle_t *handle) {
 static void
 reset_timer(struct target_context *target) {
     target->timer->data = target;
-    uv_timer_start(target->timer, timer_expire, idle_timeout, 0);
+    uv_timer_start(target->timer, timer_expire, idle_timeout * 1000, 0);
 }
 
 
@@ -81,49 +85,6 @@ close_target(struct target_context *target) {
     }
 }
 
-static int
-parse_target_address(struct sockaddr *addr, struct xsocks_request *req, char *host) {
-    int addrlen;
-    uint16_t portlen = 2; // network byte order port number, 2 bytes
-    union {
-        struct sockaddr addr;
-        struct sockaddr_in addr4;
-        struct sockaddr_in6 addr6;
-    } dest;
-
-    memset(&dest, 0, sizeof(dest));
-
-    if (req->atyp == ATYP_IPV4) {
-        size_t in_addr_len = sizeof(struct in_addr); // 4 bytes for IPv4 address
-        dest.addr4.sin_family = AF_INET;
-        memcpy(&dest.addr4.sin_addr, req->addr, in_addr_len);
-        memcpy(&dest.addr4.sin_port, req->addr + in_addr_len, portlen);
-        addrlen = 4 + portlen;
-
-    } else if (req->atyp == ATYP_HOST) {
-        uint8_t namelen = *(uint8_t *)(req->addr); // 1 byte of name length
-        if (namelen > 0xFF) {
-            return -1;
-        }
-        memcpy(&dest.addr4.sin_port, req->addr + 1 + namelen, portlen);
-        memcpy(host, req->addr + 1, namelen);
-        host[namelen] = '\0';
-        addrlen = 1 + namelen + portlen;
-
-    } else if (req->atyp == ATYP_IPV6) {
-        size_t in6_addr_len = sizeof(struct in6_addr); // 16 bytes for IPv6 address
-        memcpy(&dest.addr6.sin6_addr, req->addr, in6_addr_len);
-        memcpy(&dest.addr6.sin6_port, req->addr + in6_addr_len, portlen);
-        addrlen = 16 + portlen;
-
-    } else {
-        return 0;
-    }
-
-    memcpy(addr, &dest.addr, sizeof(*addr));
-    return addrlen;
-}
-
 static void
 target_alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
     struct target_context *target = handle->data;
@@ -140,7 +101,7 @@ client_alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
 static void
 client_send_cb(uv_udp_send_t *req, int status) {
     if (status) {
-        logger_log(LOG_ERR, "forward to client failed: %s", uv_strerror(status));
+        logger_log(LOG_ERR, "[udp] forward to client failed: %s", uv_strerror(status));
     }
     uv_buf_t *buf = (uv_buf_t *)(req + 1);
     free(buf->base);
@@ -191,6 +152,14 @@ target_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
         uint8_t *c = (uint8_t *)buf->base - target->header_len - PRIMITIVE_BYTES;
         int rc = crypto_encrypt(c, m, mlen);
         if (!rc) {
+            if (verbose) {
+                char src[INET6_ADDRSTRLEN + 1] = {0};
+                char dst[INET6_ADDRSTRLEN + 1] = {0};
+                uint16_t src_port = 0, dst_port = 0;
+                src_port = ip_name(addr, src, sizeof src);
+                dst_port = ip_name(&target->dest_addr, dst, sizeof dst);
+                logger_log(LOG_INFO, "%s:%d -> %s:%d", src, src_port, dst, dst_port);
+            }
             forward_to_client(target, c, clen);
         }
 
@@ -203,7 +172,7 @@ static void
 target_send_cb(uv_udp_send_t *req, int status) {
     if (status) {
         // TODO: close target
-        logger_log(LOG_ERR, "forward to target failed: %s", uv_strerror(status));
+        logger_log(LOG_ERR, "[udp] forward to target failed: %s", uv_strerror(status));
     }
     uv_buf_t *buf = (uv_buf_t *)(req + 1);
     free(buf->base);
@@ -212,6 +181,14 @@ target_send_cb(uv_udp_send_t *req, int status) {
 
 static void
 forward_to_target(struct target_context *target, uint8_t *data, ssize_t len) {
+    if (verbose) {
+        char src[INET6_ADDRSTRLEN + 1] = {0};
+        char dst[INET6_ADDRSTRLEN + 1] = {0};
+        uint16_t src_port = 0, dst_port = 0;
+        src_port = ip_name(&target->client_addr, src, sizeof src);
+        dst_port = ip_name(&target->dest_addr, dst, sizeof dst);
+        logger_log(LOG_INFO, "%s:%d -> %s:%d", src, src_port, dst, dst_port);
+    }
     uv_udp_send_t *write_req = malloc(sizeof(*write_req) + sizeof(uv_buf_t));
     uv_buf_t *buf = (uv_buf_t *)(write_req + 1);
     buf->base = (char *)data;
@@ -229,16 +206,30 @@ resolve_cb(struct sockaddr *addr, void *data) {
         forward_to_target(target, target->buf, target->buflen);
 
     } else {
-        logger_stderr("resolve failed.");
+        free(target->buf);
+        logger_log(LOG_ERR, "[udp] resolve failed: %s", resolver_error(target->host_query));
     }
 }
 
 static void
-resolve_target(struct target_context *target, char *addr, uint16_t port) {
-    struct resolver_context *ctx = target->server_handle->loop->data;
-    target->addr_query = resolver_query(ctx, addr, port, resolve_cb, target);
+resolve_target(struct target_context *target, char *host, uint16_t port) {
+    if (verbose) {
+        logger_log(LOG_INFO, "resolve %s", host);
+    }
+    struct resolver_context *dns = uv_key_get(&thread_resolver_key);
+    target->host_query = resolver_query(dns, host, port, resolve_cb, target);
 }
 
+/*
+ *
+ * xsocks UDP Request
+ * +------+----------+----------+----------+
+ * | ATYP | DST.ADDR | DST.PORT |   DATA   |
+ * +------+----------+----------+----------+
+ * |  1   | Variable |    2     | Variable |
+ * +------+----------+----------+----------+
+ *
+ */
 static void
 client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
     if (nread > 0) {
@@ -253,11 +244,13 @@ client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
         char host[256] = {0};
         struct sockaddr dest_addr;
         struct xsocks_request *request = (struct xsocks_request *)m;
-        int addrlen = parse_target_address(&dest_addr, request, host);
+        int addrlen = parse_target_address(request, &dest_addr, host);
         if (addrlen < 1) {
             logger_log(LOG_ERR, "unsupported address type: 0x%02x", request->atyp);
             goto err;
         }
+
+        uint16_t port = (*(uint16_t *)(m + 1 + addrlen - 2));
 
         char key[KEY_BYTES + 1] = {0};
         crypto_generickey((uint8_t *)key, sizeof(key) -1, (uint8_t*)addr, sizeof(*addr), NULL, 0);
@@ -267,6 +260,10 @@ client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
         cache_lookup(cache, key, (void *)&target);
         uv_mutex_unlock(&mutex);
         if (target == NULL) {
+            if (verbose) {
+                cache_log(request->atyp, addr, &dest_addr, host, port, 0);
+            }
+
             target = new_target();
             target->client_addr = *addr;
             target->server_handle = handle;
@@ -284,8 +281,11 @@ client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
             uv_mutex_lock(&mutex);
             cache_insert(cache, target->key, (void *)target);
             uv_mutex_unlock(&mutex);
+        } else {
+            if (verbose) {
+                cache_log(request->atyp, addr, &dest_addr, host, port, 1);
+            }
         }
-        target->dest_addr = dest_addr;
         reset_timer(target);
 
         /*
@@ -298,8 +298,6 @@ client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
          * +------+----------+----------+----------+
          *
          */
-        uint16_t port = (*(uint16_t *)(m + 1 + addrlen - 2));
-
         uint8_t atyp = request->atyp;
         mlen -= 1 + addrlen;
         memmove(m, m + 1 + addrlen, mlen);
@@ -309,6 +307,7 @@ client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
         case ATYP_IPV4:
         case ATYP_IPV6:
             target->header_len = dest_addr.sa_family == AF_INET ? IPV4_HEADER_LEN : IPV6_HEADER_LEN;
+            target->dest_addr = dest_addr;
             forward_to_target(target, m, mlen);
             break;
 
@@ -345,47 +344,4 @@ select_cb(void *element, void *opaque) {
         return 1;
     }
     return 0;
-}
-
-int
-udprelay_init() {
-    uv_mutex_init(&mutex);
-    cache_create(&cache, 1024, free_cb);
-    return 0;
-}
-
-int
-udprelay_start(uv_loop_t *loop, struct server_context *server) {
-    int rc;
-
-    uv_udp_init(loop, &server->udp);
-
-    if ((rc = uv_udp_open(&server->udp, server->udp_fd))) {
-        logger_stderr("udp open error: %s", uv_strerror(rc));
-        return 1;
-    }
-
-    rc = uv_udp_bind(&server->udp, server->local_addr, UV_UDP_REUSEADDR);
-    if (rc) {
-        logger_stderr("bind error: %s", uv_strerror(rc));
-        return 1;
-    }
-
-    uv_udp_recv_start(&server->udp, client_alloc_cb, client_recv_cb);
-
-    return 0;
-}
-
-void
-udprelay_close(struct server_context *server) {
-    uv_close((uv_handle_t*) &server->udp, NULL);
-    uv_mutex_lock(&mutex);
-    cache_removeall(cache, server->udp.loop, select_cb);
-    uv_mutex_unlock(&mutex);
-}
-
-void
-udprelay_destroy() {
-    uv_mutex_destroy(&mutex);
-    free(cache);
 }

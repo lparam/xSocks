@@ -37,7 +37,7 @@ void
 reset_timer(struct remote_context *remote) {
     if (remote->timer != NULL) {
         remote->timer->data = remote;
-        uv_timer_start(remote->timer, remote_timer_expire, remote->idle_timeout, 0);
+        uv_timer_start(remote->timer, remote_timer_expire, remote->idle_timeout * 1000, 0);
     }
 }
 

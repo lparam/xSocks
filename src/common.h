@@ -2,8 +2,9 @@
 #define _COMMON_H
 
 #include "uv.h"
+#include "socks.h"
 
-#define XSOCKS_VERSION      "0.2.1"
+#define XSOCKS_VERSION      "0.2.2"
 
 struct server_context {
     int index;
@@ -16,6 +17,7 @@ struct server_context {
     uv_sem_t semaphore;
     uv_async_t async_handle;
     uv_thread_t thread_id;
+    int resolver;
     int nameserver_num;
     char **nameservers;
     uv_connection_cb accept_cb;
@@ -31,5 +33,7 @@ struct signal_ctx {
 
 int signal_process(char *signal, const char *pidfile);
 void consumer_start(void *arg);
+int parse_target_address(const struct xsocks_request *req, struct sockaddr *addr, char *host);
+void cache_log(uint8_t atyp, const struct sockaddr *src_addr, const struct sockaddr *dst_addr, const char *host, uint16_t port, int hit);
 
 #endif // for #ifndef _COMMON_H

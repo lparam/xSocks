@@ -56,7 +56,7 @@ void forward_to_remote(struct remote_context *remote, uint8_t *buf, int buflen);
 void reset_timer(struct remote_context *remote);
 
 int verbose;
-uint32_t idle_timeout;
+uint16_t idle_timeout;
 struct sockaddr bind_addr;
 struct sockaddr server_addr;
 

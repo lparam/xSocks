@@ -129,13 +129,16 @@ request_ack(struct client_context *client, enum s5_rep rep) {
         buflen = 10;
     }
 
-    if (rep == S5_REP_SUCCESSED && client->cmd == S5_CMD_CONNECT) {
-        client->stage = XSTAGE_FORWARD;
+    if (rep == S5_REP_SUCCESSED) {
+        if (client->cmd == S5_CMD_CONNECT) {
+            client->stage = XSTAGE_FORWARD;
+        } else {
+            client->stage = XSTAGE_UDP_RELAY;
+        }
     } else {
         client->stage = XSTAGE_TERMINATE;
     }
 
-    // TODO: handle server can't connect but cmd is udp associate case
     forward_to_client(client, buf, buflen);
 }
 
@@ -157,6 +160,11 @@ request_start(struct client_context *client, char *req_buf) {
     if (req->cmd != S5_CMD_CONNECT && req->cmd != S5_CMD_UDP_ASSOCIATE) {
         logger_log(LOG_ERR, "unsupported cmd: 0x%02x", req->cmd);
         request_ack(client, S5_REP_CMD_NOT_SUPPORTED);
+        return;
+    }
+
+    if (req->cmd == S5_CMD_UDP_ASSOCIATE) {
+        request_ack(client, S5_REP_SUCCESSED);
         return;
     }
 
@@ -261,7 +269,11 @@ client_send_cb(uv_write_t *req, int status) {
     } else {
         char addrbuf[INET6_ADDRSTRLEN + 1] = {0};
         int port = ip_name(&client->addr, addrbuf, sizeof addrbuf);
-        logger_log(LOG_ERR, "%s -> %s:%d failed: %s", client->target_addr, addrbuf, port, uv_strerror(status));
+        if (client->stage == XSTAGE_FORWARD) {
+            logger_log(LOG_ERR, "%s:%d <- %s failed: %s", addrbuf, port, client->target_addr, uv_strerror(status));
+        } else {
+            logger_log(LOG_ERR, "forward to %s:%d failed: %s", addrbuf, port, uv_strerror(status));
+        }
     }
 
     free(req);

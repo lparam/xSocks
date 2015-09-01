@@ -43,7 +43,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xtunnel Version: %s Maintained by Ken <ken.i18n@gmail.com>\n", TUNNEL_VER);
+    printf("xtunnel Version: %s Maintained by lparam\n", TUNNEL_VER);
     printf("Usage: %s <-m mode> <-l local> <-t target> <-k password>\n", prog);
     printf("\t[-c concurrency] [-p pidfile] [-nVhv]\n\n");
     printf("Options:\n");
@@ -293,7 +293,6 @@ main(int argc, char *argv[]) {
             ctx->index = i;
             ctx->tcp_fd = create_socket(SOCK_STREAM, 1);
             ctx->accept_cb = source_accept_cb;
-            ctx->nameserver_num = -1;
             ctx->local_addr = &bind_addr;
             rc = uv_sem_init(&ctx->semaphore, 0);
             rc = uv_thread_create(&ctx->thread_id, consumer_start, ctx);

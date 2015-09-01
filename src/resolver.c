@@ -248,6 +248,6 @@ resolver_destroy(struct resolver_context *ctx) {
 }
 
 const char *
-resolver_lasterror(struct resolver_query *query) {
+resolver_error(struct resolver_query *query) {
     return ares_strerror(query->status);
 }

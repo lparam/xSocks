@@ -77,5 +77,8 @@
     <ClCompile Include="src\getopt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\common.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

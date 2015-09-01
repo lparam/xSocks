@@ -1,11 +1,6 @@
-#
-# (C) Copyright 2000-2015
-# Ken <ken.i18n@gmail.com>
-#
-
 MAJOR = 0
 MINOR = 2
-PATCH = 1
+PATCH = 2
 NAME = xsocks
 
 ifdef O
@@ -52,8 +47,8 @@ endif
 
 CFLAGS = \
 	-Os	\
-	-std=gnu99 \
 	-g \
+	-std=gnu99 \
 	-Wall \
 	$(PLATFORM_CFLAGS)
 
@@ -88,7 +83,7 @@ endif
 LIBS += 3rd/libuv/.libs/libuv.a 3rd/libsodium/src/libsodium/.libs/libsodium.a
 
 ifdef MINGW32
-LIBS += -lws2_32 -lpsapi -liphlpapi
+LIBS += -lws2_32 -lpsapi -liphlpapi -luserenv
 else
 LIBS += -pthread -ldl
 endif
@@ -136,6 +131,7 @@ ifndef MINGW32
 xsocksd: \
 	src/util.o \
 	src/logger.o \
+	src/common.o \
 	src/crypto.o \
 	src/resolver.o \
 	src/daemon.o \
@@ -152,6 +148,7 @@ else
 xsocksd.exe: \
 	src/util.o \
 	src/logger.o \
+	src/common.o \
 	src/crypto.o \
 	src/resolver.o \
 	src/consumer.o \
@@ -168,6 +165,7 @@ ifndef MINGW32
 xsocks: \
 	src/util.o \
 	src/logger.o \
+	src/common.o \
 	src/crypto.o \
 	src/daemon.o \
 	src/signal.o \
@@ -183,6 +181,7 @@ else
 xsocks.exe: \
 	src/util.o \
 	src/logger.o \
+	src/common.o \
 	src/crypto.o \
 	src/consumer.o \
 	src/cache.o \
