@@ -1,3 +1,12 @@
+v0.2.2 (2015-9-01)
+-----------
+* Feature: Add Connection Timeout
+* Feature: Add UDP relay option
+* Fix: TLS key
+* Fix: UDP association
+* Change: Openwrt scripts
+
+
 v0.2.1 (2015-6-09)
 -----------
 * Change: Build native xsocks with WinDDK for windows
