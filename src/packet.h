@@ -1,5 +1,5 @@
-#ifndef _PACKET_H
-#define _PACKET_H
+#ifndef PACKET_H
+#define PACKET_H
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -25,4 +25,4 @@ struct packet {
 int packet_filter(struct packet *packet, const char *buf, ssize_t buflen);
 void packet_reset(struct packet *packet);
 
-#endif // for #ifndef _PACKET_H
+#endif // for #ifndef PACKET_H

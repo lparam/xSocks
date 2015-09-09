@@ -1,5 +1,5 @@
-#ifndef _COMMON_H
-#define _COMMON_H
+#ifndef COMMON_H
+#define COMMON_H
 
 #include "uv.h"
 #include "socks.h"
@@ -36,4 +36,4 @@ void consumer_start(void *arg);
 int parse_target_address(const struct xsocks_request *req, struct sockaddr *addr, char *host);
 void cache_log(uint8_t atyp, const struct sockaddr *src_addr, const struct sockaddr *dst_addr, const char *host, uint16_t port, int hit);
 
-#endif // for #ifndef _COMMON_H
+#endif // for #ifndef COMMON_H

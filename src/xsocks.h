@@ -1,5 +1,5 @@
-#ifndef _XSOCKS_H
-#define _XSOCKS_H
+#ifndef XSOCKS_H
+#define XSOCKS_H
 
 #include "uv.h"
 #include "socks.h"
@@ -60,4 +60,4 @@ uint16_t idle_timeout;
 struct sockaddr bind_addr;
 struct sockaddr server_addr;
 
-#endif // for #ifndef _XSOCKS_H
+#endif // for #ifndef XSOCKS_H

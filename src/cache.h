@@ -3,8 +3,8 @@
  * License:  This is licensed under the same terms as uthash itself
  */
 
-#ifndef _CACHE_
-#define _CACHE_
+#ifndef CACHE_H
+#define CACHE_H
 
 #include "uthash.h"
 
@@ -36,4 +36,4 @@ extern int cache_insert(struct cache *cache, char *key, void *data);
 extern int cache_remove(struct cache *cache, char *key);
 extern int cache_removeall(struct cache *cache, void *opaque, int (*select_cb)(void *element, void *opaque));
 
-#endif
+#endif // for #ifndef CACHE_H

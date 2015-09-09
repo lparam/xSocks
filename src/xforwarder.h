@@ -1,5 +1,5 @@
-#ifndef _XFORWARDER_H
-#define _XFORWARDER_H
+#ifndef XFORWARDER_H
+#define XFORWARDER_H
 
 #include "uv.h"
 #include "socks.h"
@@ -62,4 +62,4 @@ struct sockaddr bind_addr;
 struct sockaddr dest_addr;
 struct sockaddr server_addr;
 
-#endif // for #ifndef _XFORWARDER_H
+#endif // for #ifndef XFORWARDER_H
