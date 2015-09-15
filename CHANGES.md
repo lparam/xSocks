@@ -1,3 +1,13 @@
+v0.2.5 (2015-9-15)
+-----------
+* Fix: Crypto init once only
+
+
+v0.2.4 (2015-9-01)
+-----------
+* Change: Update xforwarder's arguments
+
+
 v0.2.3 (2015-9-01)
 -----------
 * Fix: Don't use pthread_setname_p under non linux platform

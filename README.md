@@ -87,64 +87,80 @@ Modify your SERVER and PASSWORD in /etc/init.d/xsocks
 START=72
 STOP=30
 FIREWALL_RELOAD=0
+
 SERVER=IP:PORT
 PASSWORD=PASSWORD
 
+LISTEN_PORT=1070
+IP_ROUTE_TABLE_NUMBER=100
+FWMARK="0x01/0x01"
+SETNAME=wall
+CHAIN=XSOCKS
+
+
 start() {
-    tproxy
+    tproxy_start
     mkdir -p /var/run/xsocks
     xsocks -s $SERVER -k $PASSWORD
     xtproxy -s $SERVER -k $PASSWORD
-    xforwarder -l 0.0.0.0:5533 -t 8.8.8.8:53 -s $SERVER -k $PASSWORD
+    xforwarder -l 0.0.0.0:5533 -d 8.8.8.8:53 -s $SERVER -k $PASSWORD
 }
 
 stop() {
+    tproxy_stop
     xsocks --signal stop
     xtproxy --signal stop
     xforwarder --signal stop
 }
 
 shutdown() {
+    tproxy_stop
     xsocks --signal quit
     xtproxy --signal quit
     xforwarder --signal quit
 }
 
-tproxy() {
-    local LISTEN_PORT=1070
-    local IP_ROUTE_TABLE_NUMBER=100
-    local FWMARK="0x01/0x01"
-    local SETNAME=wall
+tproxy_start() {
+    iptables -t nat -D PREROUTING -p tcp -j $CHAIN > /dev/null 2>&1
+    iptables -t nat -F $CHAIN > /dev/null 2>&1
+    iptables -t nat -X $CHAIN > /dev/null 2>&1
 
-    iptables -t nat -D PREROUTING -p tcp -j XSOCKS
-    iptables -t nat -F XSOCKS
-    iptables -t nat -X XSOCKS
+    iptables -t mangle -D PREROUTING -j $CHAIN > /dev/null 2>&1
+    iptables -t mangle -F $CHAIN > /dev/null 2>&1
+    iptables -t mangle -X $CHAIN > /dev/null 2>&1
 
-    iptables -t mangle -D PREROUTING -j XSOCKS
-    iptables -t mangle -F XSOCKS
-    iptables -t mangle -X XSOCKS
+    iptables -t nat -N $CHAIN
+    iptables -t mangle -N $CHAIN
 
-    iptables -t nat -N XSOCKS
-    iptables -t mangle -N XSOCKS
-
-    ipset -F $SETNAME
-    ipset -X $SETNAME
-    ipset -N $SETNAME iphash
+    ipset -N $SETNAME iphash -exist
 
     ### TCP
-    iptables -t nat -A XSOCKS -p tcp -m set --match-set $SETNAME dst -j REDIRECT --to-port $LISTEN_PORT
-    iptables -t nat -A PREROUTING -p tcp -j XSOCKS
+    iptables -t nat -A $CHAIN -p tcp -m set --match-set $SETNAME dst -j REDIRECT --to-port $LISTEN_PORT
+    iptables -t nat -A PREROUTING -p tcp -j $CHAIN
 
     ### UDP
-    ip rule del fwmark $FWMARK table $IP_ROUTE_TABLE_NUMBER
-    ip route del local 0.0.0.0/0 dev lo table $IP_ROUTE_TABLE_NUMBER
+    ip rule del fwmark $FWMARK table $IP_ROUTE_TABLE_NUMBER > /dev/null 2>&1
+    ip route del local 0.0.0.0/0 dev lo table $IP_ROUTE_TABLE_NUMBER > /dev/null 2>&1
 
     ip rule add fwmark $FWMARK table $IP_ROUTE_TABLE_NUMBER
     ip route add local 0.0.0.0/0 dev lo table $IP_ROUTE_TABLE_NUMBER
 
-    iptables -t mangle -A XSOCKS -p udp -m set --match-set $SETNAME dst -j TPROXY \
+    iptables -t mangle -A $CHAIN -p udp -m set --match-set $SETNAME dst -j TPROXY \
         --on-port $LISTEN_PORT --tproxy-mark $FWMARK
-    iptables -t mangle -A PREROUTING -j XSOCKS
+    iptables -t mangle -A PREROUTING -j $CHAIN
+}
+
+tproxy_stop() {
+    iptables -t nat -D PREROUTING -p tcp -j $CHAIN > /dev/null 2>&1
+    iptables -t nat -F $CHAIN > /dev/null 2>&1
+    iptables -t nat -X $CHAIN > /dev/null 2>&1
+
+    iptables -t mangle -D PREROUTING -j $CHAIN > /dev/null 2>&1
+    iptables -t mangle -F $CHAIN > /dev/null 2>&1
+    iptables -t mangle -X $CHAIN > /dev/null 2>&1
+
+    ip rule del fwmark $FWMARK table $IP_ROUTE_TABLE_NUMBER > /dev/null 2>&1
+    ip route del local 0.0.0.0/0 dev lo table $IP_ROUTE_TABLE_NUMBER > /dev/null 2>&1
 }
 ```
 
