@@ -244,8 +244,6 @@ main(int argc, char *argv[]) {
     }
 #endif
 
-    init();
-
 #ifndef _WIN32
     if (daemon_mode) {
         if (daemonize()) {
@@ -257,6 +255,8 @@ main(int argc, char *argv[]) {
         }
     }
 #endif
+
+    init();
 
     loop = uv_default_loop();
 
