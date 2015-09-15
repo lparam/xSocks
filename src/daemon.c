@@ -39,7 +39,7 @@ already_running(const char *pidfile) {
 			close(fd);
 			return(1);
 		}
-		logger_stderr("can't lock %s: %s\n", pidfile, strerror(errno));
+		logger_stderr("can't lock %s: %s", pidfile, strerror(errno));
 		exit(1);
 	}
 
@@ -47,12 +47,12 @@ already_running(const char *pidfile) {
      * create pid file
      */
     if (ftruncate(fd, 0)) {
-		fprintf(stderr, "can't truncate %s: %s", pidfile, strerror(errno));
+		logger_stderr("can't truncate %s: %s", pidfile, strerror(errno));
 		exit(1);
     }
     sprintf(buf, "%ld\n", (long)getpid());
     if (write(fd, buf, strlen(buf)+1) == -1) {
-		fprintf(stderr, "can't write %s: %s", pidfile, strerror(errno));
+		logger_stderr("can't write %s: %s", pidfile, strerror(errno));
 		exit(1);
     }
 
@@ -92,7 +92,11 @@ daemonize(void) {
 
     setsid();
 
-    if ((fd = open("/dev/null", O_RDWR, 0)) != -1) {
+    if ((fd = open("/dev/null", O_RDWR, 0)) == -1) {
+		logger_stderr("open [/dev/null] failed (%d: %s)", errno, strerror(errno));
+        return -1;
+
+    } else {
         dup2(fd, STDIN_FILENO);
         dup2(fd, STDOUT_FILENO);
         /* dup2(fd, STDERR_FILENO); */
