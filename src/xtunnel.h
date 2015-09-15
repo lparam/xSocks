@@ -1,5 +1,5 @@
-#ifndef _XTUNNEL_H
-#define _XTUNNEL_H
+#ifndef XTUNNEL_H
+#define XTUNNEL_H
 
 #include "uv.h"
 #include "socks.h"
@@ -61,4 +61,4 @@ int verbose;
 enum tunnel_mode mode;
 struct sockaddr target_addr;
 
-#endif // for #ifndef _XTUNNEL_H
+#endif // for #ifndef XTUNNEL_H

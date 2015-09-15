@@ -1,5 +1,5 @@
-#ifndef _LOGGER_H
-#define _LOGGER_H
+#ifndef LOGGER_H
+#define LOGGER_H
 
 #include <stdint.h>
 
@@ -21,4 +21,4 @@ void logger_exit(void);
 void logger_stderr(const char *msg, ...);
 void logger_log(uint32_t level, const char *msg, ...);
 
-#endif // for #ifndef _LOGGER_H
+#endif // for #ifndef LOGGER_H

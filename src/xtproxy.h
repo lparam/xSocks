@@ -1,5 +1,5 @@
-#ifndef _XTPROXY_H
-#define _XTPROXY_H
+#ifndef XTPROXY_H
+#define XTPROXY_H
 
 #include "uv.h"
 #include "socks.h"
@@ -60,4 +60,4 @@ void close_loop(uv_loop_t *loop);
 int verbose;
 uint16_t idle_timeout;
 
-#endif // for #ifndef _XTPROXY_H
+#endif // for #ifndef XTPROXY_H

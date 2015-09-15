@@ -34,12 +34,8 @@ PROFITS, BUSINESS INTERRUPTION, LOSS OF PROGRAMS OR OTHER DATA ON
 YOUR INFORMATION HANDLING SYSTEM OR OTHERWISE, EVEN If WE ARE
 EXPRESSLY ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 */
-#ifndef __GETOPT_H_
-	#define __GETOPT_H_
-
-	#ifdef _GETOPT_API
-		#undef _GETOPT_API
-	#endif
+#ifndef GETOPT_WIN_H
+#define GETOPT_WIN_H
 
 	#if defined(EXPORTS_GETOPT) && defined(STATIC_GETOPT)
 		#error "The preprocessor definitions of EXPORTS_GETOPT and STATIC_GETOPT can only be used individually"
@@ -135,4 +131,4 @@ _END_EXTERN_C
 		#define option option_a
 		#define optarg optarg_a
 	#endif
-#endif  // __GETOPT_H_
+#endif // for #ifndef GETOPT_WIN_H

@@ -1,5 +1,5 @@
-#ifndef _XSOCKSD_H
-#define _XSOCKSD_H
+#ifndef XSOCKSD_H
+#define XSOCKSD_H
 
 #include "uv.h"
 #include "socks.h"
@@ -63,4 +63,4 @@ int verbose;
 uint16_t idle_timeout;
 uv_key_t thread_resolver_key;
 
-#endif // for #ifndef _XSOCKSD_H
+#endif // for #ifndef XSOCKSD_H

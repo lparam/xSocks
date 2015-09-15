@@ -1,5 +1,5 @@
-#ifndef _SOCKS_H
-#define _SOCKS_H
+#ifndef SOCKS_H
+#define SOCKS_H
 
 #pragma pack(push,1)
 
@@ -83,4 +83,4 @@ enum xstage {
     XSTAGE_DEAD,
 };
 
-#endif // for #ifndef _SOCKS_H
+#endif // for #ifndef SOCKS_H

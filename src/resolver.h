@@ -1,5 +1,5 @@
-#ifndef _RESOLVER_H
-#define _RESOLVER_H
+#ifndef RESOLVER_H
+#define RESOLVER_H
 
 #include <stdint.h>
 #include "uv.h"
@@ -25,4 +25,4 @@ void resolver_shutdown(struct resolver_context *ctx);
 void resolver_destroy(struct resolver_context *ctx);
 const char * resolver_error(struct resolver_query *query);
 
-#endif // for #ifndef _RESOLVER_H
+#endif // for #ifndef RESOLVER_H

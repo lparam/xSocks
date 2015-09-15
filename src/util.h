@@ -1,5 +1,5 @@
-#ifndef _UTIL_H
-#define _UTIL_H
+#ifndef UTIL_H
+#define UTIL_H
 
 #include <stdio.h>
 #include <stdint.h>
@@ -16,4 +16,4 @@ int ip_name(const struct sockaddr *ip, char *name, size_t size);
 uv_os_sock_t create_socket(int type, int reuse);
 void dump_hex(const void *data, uint32_t len, char *title);
 
-#endif // for #ifndef _UTIL_H
+#endif // for #ifndef UTIL_H
