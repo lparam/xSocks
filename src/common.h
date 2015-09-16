@@ -4,7 +4,7 @@
 #include "uv.h"
 #include "socks.h"
 
-#define XSOCKS_VERSION      "0.2.5"
+#define XSOCKS_VERSION      "0.2.6"
 
 struct server_context {
     int index;

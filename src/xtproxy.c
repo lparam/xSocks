@@ -216,8 +216,6 @@ main(int argc, char *argv[]) {
         return 1;
     }
 
-    init();
-
     if (daemon_mode) {
         if (daemonize()) {
             return 1;
@@ -227,6 +225,8 @@ main(int argc, char *argv[]) {
             return 1;
         }
     }
+
+    init();
 
     loop = uv_default_loop();
 
