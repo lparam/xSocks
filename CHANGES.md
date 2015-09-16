@@ -1,3 +1,8 @@
+v0.2.6 (2015-9-16)
+-----------
+* Hotfix: Crypto init once only
+
+
 v0.2.5 (2015-9-15)
 -----------
 * Fix: Crypto init once only

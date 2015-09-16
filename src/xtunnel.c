@@ -231,10 +231,6 @@ main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (init()) {
-        return 1;
-    }
-
 #ifndef _WIN32
     if (daemon_mode) {
         if (daemonize()) {
@@ -246,6 +242,10 @@ main(int argc, char *argv[]) {
         }
     }
 #endif
+
+    if (init()) {
+        return 1;
+    }
 
     loop = uv_default_loop();
 
