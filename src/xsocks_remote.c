@@ -51,12 +51,13 @@ timer_close_cb(uv_handle_t *handle) {
 }
 
 struct remote_context *
-new_remote(uint16_t timeout) {
+new_remote(uint16_t timeout, struct sockaddr *addr) {
     struct remote_context *remote = malloc(sizeof(*remote));
     memset(remote, 0, sizeof(*remote));
     remote->stage = XSTAGE_HANDSHAKE;
     remote->timer = malloc(sizeof(uv_timer_t));
     remote->idle_timeout = timeout;
+    remote->addr = addr ? *addr : server_addr;
     return remote;
 }
 
@@ -102,12 +103,25 @@ close_remote(struct remote_context *remote) {
 }
 
 static void
+forward_client_request_packet(struct remote_context *remote, struct client_context *client) {
+    if (!remote->direct) {
+        int clen = client->buflen + PRIMITIVE_BYTES;
+        uint8_t *c = client->buf + HEADER_BYTES;
+        int rc = crypto_encrypt(c, client->buf + OVERHEAD_BYTES, client->buflen);
+        if (!rc) {
+            forward_to_remote(remote, c, clen);
+        }
+    }
+}
+
+static void
 remote_connect_cb(uv_connect_t *req, int status) {
     struct remote_context *remote = (struct remote_context *)req->data;
     struct client_context *client = remote->client;
 
-
     if (status == 0) {
+        forward_client_request_packet(remote, client);
+
         remote->stage = XSTAGE_FORWARD;
         reset_timer(remote);
         receive_from_client(client);
@@ -115,7 +129,7 @@ remote_connect_cb(uv_connect_t *req, int status) {
 
     } else {
         if (status != UV_ECANCELED) {
-            logger_log(LOG_ERR, "connect to server failed: %s", uv_strerror(status));
+            logger_log(LOG_ERR, "connect to remote failed: %s", uv_strerror(status));
             request_ack(client, S5_REP_HOST_UNREACHABLE);
         }
     }
@@ -130,21 +144,30 @@ receive_from_remote(struct remote_context *remote) {
 
 void
 forward_to_remote(struct remote_context *remote, uint8_t *buf, int buflen) {
-    buf -= HEADER_BYTES;
-    write_size(buf, buflen);
-    buflen += HEADER_BYTES;
-    uv_buf_t data = uv_buf_init((char*)buf, buflen);
-    remote->write_req.data = remote;
-    uv_write(&remote->write_req, &remote->handle.stream, &data, 1, remote_send_cb);
+    uv_buf_t data;
+
+    if (remote->direct) {
+        data = uv_buf_init((char*)buf, buflen);
+        remote->write_req.data = remote;
+        uv_write(&remote->write_req, &remote->handle.stream, &data, 1, remote_send_cb);
+
+    } else {
+        buf -= HEADER_BYTES;
+        write_size(buf, buflen);
+        buflen += HEADER_BYTES;
+        data = uv_buf_init((char*)buf, buflen);
+        remote->write_req.data = remote;
+        uv_write(&remote->write_req, &remote->handle.stream, &data, 1, remote_send_cb);
+    }
 }
 
 void
 connect_to_remote(struct remote_context *remote) {
     remote->stage = XSTAGE_CONNECT;
     remote->connect_req.data = remote;
-    int rc = uv_tcp_connect(&remote->connect_req, &remote->handle.tcp, &server_addr, remote_connect_cb);
+    int rc = uv_tcp_connect(&remote->connect_req, &remote->handle.tcp, &remote->addr, remote_connect_cb);
     if (rc) {
-        logger_log(LOG_ERR, "connect to server error: %s", uv_strerror(rc));
+        logger_log(LOG_ERR, "connect to remote error: %s", uv_strerror(rc));
         request_ack(remote->client, S5_REP_NETWORK_UNREACHABLE);
     }
 }
@@ -171,22 +194,28 @@ remote_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 
     if (nread > 0) {
         reset_timer(remote);
-        struct packet *packet = &remote->packet;
-        int rc = packet_filter(packet, buf->base, nread);
-        if (rc == PACKET_COMPLETED) {
-            uint8_t *m = packet->buf;
-            int mlen = packet->size - PRIMITIVE_BYTES;
+        if (remote->direct) {
+            uv_read_stop(&remote->handle.stream);
+            forward_to_client(client, (uint8_t*)buf->base, nread);
 
-            int err = crypto_decrypt(m, packet->buf, packet->size);
-            if (err) {
+        } else {
+            struct packet *packet = &remote->packet;
+            int rc = packet_filter(packet, buf->base, nread);
+            if (rc == PACKET_COMPLETED) {
+                uint8_t *m = packet->buf;
+                int mlen = packet->size - PRIMITIVE_BYTES;
+
+                int err = crypto_decrypt(m, packet->buf, packet->size);
+                if (err) {
+                    goto error;
+                }
+
+                uv_read_stop(&remote->handle.stream);
+                forward_to_client(client, m, mlen);
+
+            } else if (rc == PACKET_INVALID) {
                 goto error;
             }
-
-            uv_read_stop(&remote->handle.stream);
-            forward_to_client(client, m, mlen);
-
-        } else if (rc == PACKET_INVALID) {
-            goto error;
         }
 
     } else if (nread < 0){

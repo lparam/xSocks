@@ -5,6 +5,7 @@
 
 #include "uv.h"
 
+#include "acl.h"
 #include "util.h"
 #include "logger.h"
 #include "crypto.h"
@@ -98,23 +99,18 @@ forward_to_client(struct client_context *client, uint8_t *buf, int buflen) {
  */
 void
 request_ack(struct client_context *client, enum s5_rep rep) {
-    struct remote_context *remote = client->remote;
     struct sockaddr addr;
     int addrlen = sizeof(addr);
     int buflen;
     uint8_t *buf;
 
-    buf = remote->packet.buf;
+    buf = client->buf;
     buf[0] = 0x05; // VER
     buf[1] = rep;  // REP
     buf[2] = 0x00; // RSV
 
     memset(&addr, 0, sizeof(addr));
-    if (client->cmd == S5_CMD_UDP_ASSOCIATE) {
-        uv_tcp_getsockname(&client->handle.tcp, (struct sockaddr *) &addr, &addrlen);
-    } else {
-        uv_tcp_getsockname(&remote->handle.tcp, (struct sockaddr *) &addr, &addrlen);
-    }
+    uv_tcp_getsockname(&client->handle.tcp, (struct sockaddr *) &addr, &addrlen);
     if (addr.sa_family == AF_INET6) {
         buf[3] = 0x04;  /* ATYP - IPv6. */
         const struct sockaddr_in6 *addr6 = (const struct sockaddr_in6 *)&addr;
@@ -151,10 +147,6 @@ handshake(struct client_context *client) {
 static void
 request_start(struct client_context *client, char *req_buf) {
     struct socks5_request *req = (struct socks5_request *)req_buf;
-    struct remote_context *remote = client->remote;
-
-    assert(remote->stage == XSTAGE_FORWARD);
-
     client->cmd = req->cmd;
 
     if (req->cmd != S5_CMD_CONNECT && req->cmd != S5_CMD_UDP_ASSOCIATE) {
@@ -168,6 +160,7 @@ request_start(struct client_context *client, char *req_buf) {
         return;
     }
 
+    char host[256] = {0};
     char buf[260] = {0};
     size_t buflen;
     uint16_t portlen = 2;
@@ -189,9 +182,9 @@ request_start(struct client_context *client, char *req_buf) {
         memcpy(buf + 1, req->addr, in_addr_len);
         memcpy(buf + 1 + in_addr_len, req->addr + in_addr_len, portlen);
 
-        uv_inet_ntop(AF_INET, (const void *)(req->addr), client->target_addr, INET_ADDRSTRLEN);
+        uv_inet_ntop(AF_INET, (const void *)(req->addr), host, INET_ADDRSTRLEN);
         uint16_t port = read_size((uint8_t*)(req->addr + in_addr_len));
-        sprintf(client->target_addr, "%s:%u", client->target_addr, port);
+        sprintf(client->target_addr, "%s:%u", host, port);
 
     } else if (req->atyp == ATYP_HOST) {
         uint8_t namelen = *(uint8_t *)(req->addr);
@@ -216,9 +209,9 @@ request_start(struct client_context *client, char *req_buf) {
         memcpy(buf + 1, req->addr, in6_addr_len);
         memcpy(buf + 1 + in6_addr_len, req->addr + in6_addr_len, portlen);
 
-        uv_inet_ntop(AF_INET6, (const void *)(req->addr), client->target_addr, INET_ADDRSTRLEN);
+        uv_inet_ntop(AF_INET6, (const void *)(req->addr), host, INET6_ADDRSTRLEN);
         uint16_t port = read_size((uint8_t*)(req->addr + in6_addr_len));
-        sprintf(client->target_addr, "%s:%u", client->target_addr, port);
+        sprintf(client->target_addr, "%s:%u", host, port);
 
     } else {
         logger_log(LOG_ERR, "unsupported address type: 0x%02x", req->atyp);
@@ -228,18 +221,43 @@ request_start(struct client_context *client, char *req_buf) {
 
     request_ack(client, S5_REP_SUCCESSED);
 
-    // TODO: handle UDP ASSOCIATE
-    if (req->cmd == S5_CMD_CONNECT) {
+    if (req->cmd == S5_CMD_UDP_ASSOCIATE) {
+        return;
+    }
+
+    int direct = 0;
+    struct sockaddr addr;
+    memset(&addr, 0, sizeof addr);
+
+    if ((acl && (req->atyp == 1 || req->atyp == 4) && acl_contains_ip(host))) {
         if (verbose) {
-            logger_log(LOG_INFO, "connect to %s", client->target_addr);
+            logger_log(LOG_WARNING, "bypass %s", client->target_addr);
         }
-        int clen = buflen + PRIMITIVE_BYTES;
-        uint8_t *c = client->buf + HEADER_BYTES;
-        int rc = crypto_encrypt(c, (uint8_t *)buf, buflen);
-        if (!rc) {
-            forward_to_remote(remote, c, clen);
+        direct = 1;
+        int rc = resolve_addr(client->target_addr, &addr);
+        if (rc) {
+            logger_stderr("invalid target address");
+            request_ack(client, S5_REP_ADDRESS_TYPE_NOT_SUPPORTED);
+            return;
         }
     }
+
+    client->buflen = buflen;
+    memcpy(req_buf, buf, buflen);
+
+    struct remote_context *remote = new_remote(idle_timeout, direct ? &addr : NULL);
+    remote->direct = direct;
+    remote->client = client;
+    client->remote = remote;
+
+    uv_timer_init(client->handle.stream.loop, remote->timer);
+    uv_tcp_init(client->handle.stream.loop, &remote->handle.tcp);
+
+    if (verbose && !direct) {
+        logger_log(LOG_INFO, "connect to %s", client->target_addr);
+    }
+
+    connect_to_remote(remote);
 }
 
 static void
@@ -286,7 +304,6 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
     int clen;
 
     if (nread > 0) {
-        reset_timer(remote);
         uv_read_stop(&client->handle.stream);
 
         switch (client->stage) {
@@ -296,7 +313,7 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
             } else {
                 logger_log(LOG_ERR, "invalid method packet");
                 close_client(client);
-                close_remote(remote);
+                /* close_remote(remote); */
             }
 
             break;
@@ -307,21 +324,28 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
             } else {
                 logger_log(LOG_ERR, "invalid request packet");
                 close_client(client);
-                close_remote(remote);
+                /* close_remote(remote); */
             }
 
             break;
 
         case XSTAGE_FORWARD:
-            clen = nread + PRIMITIVE_BYTES;
-            uint8_t *c = client->buf + HEADER_BYTES;
-            int rc = crypto_encrypt(c, (uint8_t*)buf->base, nread);
-            if (rc) {
-                logger_log(LOG_ERR, "encrypt failed");
-                close_client(client);
-                close_remote(remote);
+            reset_timer(remote);
+
+            if (remote->direct) {
+                forward_to_remote(remote, (uint8_t*)buf->base, nread);
+
+            } else {
+                clen = nread + PRIMITIVE_BYTES;
+                uint8_t *c = client->buf + HEADER_BYTES;
+                int rc = crypto_encrypt(c, (uint8_t*)buf->base, nread);
+                if (rc) {
+                    logger_log(LOG_ERR, "encrypt failed");
+                    close_client(client);
+                    close_remote(remote);
+                }
+                forward_to_remote(remote, c, clen);
             }
-            forward_to_remote(remote, c, clen);
 
             break;
 
@@ -343,26 +367,14 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 void
 client_accept_cb(uv_stream_t *server, int status) {
     struct client_context *client = new_client();
-    struct remote_context *remote = new_remote(idle_timeout);
-
-    client->remote = remote;
-    remote->client = client;
-
-    uv_timer_init(server->loop, remote->timer);
-
     uv_tcp_init(server->loop, &client->handle.tcp);
-    uv_tcp_init(server->loop, &remote->handle.tcp);
-
-
     int rc = uv_accept(server, &client->handle.stream);
     if (rc == 0) {
         int namelen = sizeof client->addr;
         uv_tcp_getpeername(&client->handle.tcp, &client->addr, &namelen);
-        reset_timer(remote); // start timer
-        connect_to_remote(remote);
+        receive_from_client(client);
     } else {
         logger_log(LOG_ERR, "accept error: %s", uv_strerror(rc));
         close_client(client);
-        close_remote(remote);
     }
 }

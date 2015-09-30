@@ -66,7 +66,7 @@ xsocksd --signal stop
 
 ```bash
 xsocks -s SERVER:PORT -k PASSWORD
-xforwarder -s SERVER:PORT -k PASSWORD -t TARGET:PORT
+xforwarder -s SERVER:PORT -k PASSWORD -d DESTINATION:PORT
 xtunnel -m client -k PASSWORD -t TARGET:PORT
 ```
 

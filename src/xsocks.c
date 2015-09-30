@@ -9,6 +9,7 @@
 
 #include "uv.h"
 
+#include "acl.h"
 #include "util.h"
 #include "logger.h"
 #include "crypto.h"
@@ -214,6 +215,8 @@ init(void) {
     if (idle_timeout == 0) {
         idle_timeout = 60;
     }
+
+    acl = !init_acl("acl.txt");
 }
 
 int
