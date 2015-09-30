@@ -23,6 +23,7 @@ static char *local_addr = "0.0.0.0:1080";
 static char *server_addr_buf;
 static char *pidfile = "/var/run/xsocks/xsocks.pid";
 static char *password = NULL;
+static char *acl_file;
 static char *xsignal;
 
 #ifndef _WIN32
@@ -39,6 +40,7 @@ static const struct option _lopts[] = {
     { "",        required_argument,   NULL, 't' },
     { "",        required_argument,   NULL, 's' },
     { "",        no_argument,         NULL, 'n' },
+    { "acl",     required_argument,   NULL,  0  },
     { "signal",  required_argument,   NULL,  0  },
     { "version", no_argument,         NULL, 'v' },
     { "help",    no_argument,         NULL, 'h' },
@@ -62,6 +64,9 @@ print_usage(const char *prog) {
 #ifndef _WIN32
          "  [-c <concurrency>]\t : worker threads\n"
          "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xsocks.pid)\n"
+#endif
+         "  [--acl <aclfile>]\t : ACL (Access Control List) file path\n"
+#ifndef _WIN32
          "  [--signal <signal>]\t : send signal to xsocks: quit, stop\n"
          "  [-n]\t\t\t : non daemon mode\n"
 #endif
@@ -119,6 +124,9 @@ parse_opts(int argc, char *argv[]) {
                 }
                 fprintf(stderr, "invalid option: --signal %s\n", xsignal);
                 print_usage(argv[0]);
+            }
+            if (strcmp("acl", _lopts[longindex].name) == 0) {
+                acl_file = optarg;
             }
 			break;
         default:
@@ -216,7 +224,9 @@ init(void) {
         idle_timeout = 60;
     }
 
-    acl = !init_acl("acl.txt");
+    if (acl_file != NULL) {
+        acl = !init_acl(acl_file);
+    }
 }
 
 int
@@ -340,6 +350,9 @@ main(int argc, char *argv[]) {
     }
 #endif
 
+    if (acl_file != NULL) {
+        free_acl();
+    }
     logger_exit();
 
     return 0;
