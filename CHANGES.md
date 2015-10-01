@@ -1,3 +1,8 @@
+v0.3.0 (2015-10-1)
+-----------
+* Feature: Support ACL
+
+
 v0.2.6 (2015-9-16)
 -----------
 * Hotfix: Crypto init once only
