@@ -257,6 +257,7 @@ request_start(struct client_context *client, char *req_buf) {
         logger_log(LOG_INFO, "connect to %s", client->target_addr);
     }
 
+    reset_timer(remote);
     connect_to_remote(remote);
 }
 
@@ -313,7 +314,6 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
             } else {
                 logger_log(LOG_ERR, "invalid method packet");
                 close_client(client);
-                /* close_remote(remote); */
             }
 
             break;
@@ -324,7 +324,6 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
             } else {
                 logger_log(LOG_ERR, "invalid request packet");
                 close_client(client);
-                /* close_remote(remote); */
             }
 
             break;
