@@ -26,7 +26,7 @@ static uv_tty_t _ttyerr;
 #endif
 
 static const char *levels[] = {
-    "EMERG", "ALERT", "CRIT", "ERR", "WARNING", "NOTICE", "INFO", "DEBUG"
+    "EMERG", "ALERT", "CRIT", "ERR", "WARN", "NOTICE", "INFO", "DEBUG"
 };
 
 static const char *colors[] = {

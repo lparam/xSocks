@@ -1,6 +1,6 @@
 MAJOR = 0
-MINOR = 2
-PATCH = 6
+MINOR = 3
+PATCH = 0
 NAME = xsocks
 
 ifdef O
@@ -68,7 +68,7 @@ EXTRA_CFLAGS =
 #########################################################################
 
 CPPFLAGS += -Isrc
-CPPFLAGS += -I3rd/libuv/include -I3rd/libsodium/src/libsodium/include -I3rd/c-ares/
+CPPFLAGS += -I3rd/libuv/include -I3rd/libsodium/src/libsodium/include -I3rd/c-ares -I3rd/libcork/include -I3rd/libipset/include
 
 LDFLAGS = -Wl,--gc-sections
 
@@ -80,6 +80,8 @@ else
 	endif
 endif
 
+LIBCORK = 3rd/libcork/libcork.a
+LIBIPSET = 3rd/libipset/libipset.a
 LIBS += 3rd/libuv/.libs/libuv.a 3rd/libsodium/src/libsodium/.libs/libsodium.a
 
 ifdef MINGW32
@@ -127,6 +129,43 @@ libsodium: 3rd/libsodium/Makefile
 
 c-ares: 3rd/c-ares/Makefile
 
+$(LIBCORK): \
+	3rd/libcork/src/core/allocator.o \
+	3rd/libcork/src/core/error.o \
+	3rd/libcork/src/core/ip-address.o \
+	3rd/libcork/src/ds/array.o \
+	3rd/libcork/src/ds/hash-table.o \
+	3rd/libcork/src/ds/buffer.o \
+	3rd/libcork/src/ds/dllist.o \
+	3rd/libcork/src/posix/process.o
+	$(BUILD_AR) rcu $@ $^
+	$(BUILD_RANLIB) $@
+
+$(LIBIPSET): \
+	3rd/libipset/src/bdd/bdd-iterator.o \
+	3rd/libipset/src/bdd/read.o \
+	3rd/libipset/src/bdd/assignments.o \
+	3rd/libipset/src/bdd/write.o \
+	3rd/libipset/src/bdd/basics.o \
+	3rd/libipset/src/bdd/reachable.o \
+	3rd/libipset/src/bdd/expanded.o \
+	3rd/libipset/src/general.o \
+	3rd/libipset/src/map/inspection.o \
+	3rd/libipset/src/map/storage.o \
+	3rd/libipset/src/map/allocation.o \
+	3rd/libipset/src/map/ipv6_map.o \
+	3rd/libipset/src/map/ipv4_map.o \
+	3rd/libipset/src/set/ipv4_set.o \
+	3rd/libipset/src/set/inspection.o \
+	3rd/libipset/src/set/iterator.o \
+	3rd/libipset/src/set/storage.o \
+	3rd/libipset/src/set/ipv6_set.o \
+	3rd/libipset/src/set/allocation.o
+	$(BUILD_AR) rcu $@ $^
+	$(BUILD_RANLIB) $@
+
+lib3rd: $(LIBCORK) $(LIBIPSET)
+
 ifndef MINGW32
 xsocksd: \
 	src/util.o \
@@ -163,6 +202,7 @@ endif
 
 ifndef MINGW32
 xsocks: \
+	src/acl.o \
 	src/util.o \
 	src/logger.o \
 	src/common.o \
@@ -175,8 +215,9 @@ xsocks: \
 	src/xsocks_udprelay.o \
 	src/xsocks_client.o \
 	src/xsocks_remote.o \
-	src/xsocks.o
-	$(LINK) $^ -o $(OBJTREE)/$@ $(LDFLAGS)
+	src/xsocks.o \
+	| lib3rd
+	$(LINK) $^ -o $(OBJTREE)/$@ $(LDFLAGS) $(LIBIPSET) $(LIBCORK)
 else
 xsocks.exe: \
 	src/util.o \
@@ -265,7 +306,7 @@ xtunnel.exe: \
 endif
 
 clean:
-	@find $(OBJTREE)/src -type f \
+	@find $(OBJTREE)/src 3rd/libcork 3rd/libipset -type f \
 	\( -name '*.bak' -o -name '*~' \
 	-o -name '*.o' -o -name '*.tmp' \) -print \
 	| xargs rm -f
