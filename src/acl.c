@@ -1,25 +1,3 @@
-/*
- * acl.c - Manage the ACL (Access Control List)
- *
- * Copyright (C) 2013 - 2015, Max Lv <max.c.lv@gmail.com>
- *
- * This file is part of the shadowsocks-libev.
- *
- * shadowsocks-libev is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * shadowsocks-libev is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with shadowsocks-libev; see the file COPYING. If not, see
- * <http://www.gnu.org/licenses/>.
- */
-
 #include <stdio.h>
 #include <string.h>
 
@@ -30,8 +8,8 @@
 static struct ip_set acl_ipv4_set;
 static struct ip_set acl_ipv6_set;
 
-static void parse_addr_cidr(const char *str, char *host, int *cidr)
-{
+static void
+parse_addr_cidr(const char *str, char *host, int *cidr) {
     int ret = -1, n = 0;
     char *pch;
 
@@ -51,8 +29,8 @@ static void parse_addr_cidr(const char *str, char *host, int *cidr)
     }
 }
 
-int init_acl(const char *path)
-{
+int
+acl_init(const char *path) {
     // initialize ipset
     ipset_init_library();
     ipset_init(&acl_ipv4_set);
@@ -60,7 +38,7 @@ int init_acl(const char *path)
 
     FILE *f = fopen(path, "r");
     if (f == NULL) {
-        logger_stderr("Invalid acl path.");
+        logger_stderr("Invalid acl path");
         return -1;
     }
 
@@ -102,14 +80,14 @@ int init_acl(const char *path)
     return 0;
 }
 
-void free_acl(void)
-{
+void
+acl_free(void) {
     ipset_done(&acl_ipv4_set);
     ipset_done(&acl_ipv6_set);
 }
 
-int acl_contains_ip(const char * host)
-{
+int
+acl_contains_ip(const char * host) {
     struct cork_ip addr;
     int err = cork_ip_init(&addr, host);
     if (err) {

@@ -225,7 +225,7 @@ init(void) {
     }
 
     if (acl_file != NULL) {
-        acl = !init_acl(acl_file);
+        acl = !acl_init(acl_file);
     }
 }
 
@@ -351,7 +351,7 @@ main(int argc, char *argv[]) {
 #endif
 
     if (acl_file != NULL) {
-        free_acl();
+        acl_free();
     }
     logger_exit();
 
