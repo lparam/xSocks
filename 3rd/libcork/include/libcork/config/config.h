@@ -29,7 +29,7 @@
 
 /**** VERSION ****/
 
-#include <libcork/config/version.h>
+// #include <libcork/config/version.h>
 
 
 /**** ARCHITECTURES ****/
