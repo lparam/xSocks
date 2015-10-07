@@ -117,6 +117,7 @@ request_ack(struct client_context *client, enum s5_rep rep) {
         memcpy(buf + 4, &addr6->sin6_addr, 16); /* BND.ADDR */
         memcpy(buf + 20, &addr6->sin6_port, 2); /* BND.PORT */
         buflen = 22;
+
     } else {
         buf[3] = 0x01;  /* ATYP - IPv4. */
         const struct sockaddr_in *addr4 = (const struct sockaddr_in *)&addr;
@@ -128,9 +129,11 @@ request_ack(struct client_context *client, enum s5_rep rep) {
     if (rep == S5_REP_SUCCESSED) {
         if (client->cmd == S5_CMD_CONNECT) {
             client->stage = XSTAGE_FORWARD;
+
         } else {
             client->stage = XSTAGE_UDP_RELAY;
         }
+
     } else {
         client->stage = XSTAGE_TERMINATE;
     }
