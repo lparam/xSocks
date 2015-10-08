@@ -28,9 +28,7 @@ new_client() {
 
 static void
 free_client(struct client_context *client) {
-    if (client->remote != NULL) {
-        client->remote = NULL;
-    }
+    client->remote = NULL;
     free(client);
 }
 
@@ -345,8 +343,10 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
                     logger_log(LOG_ERR, "encrypt failed");
                     close_client(client);
                     close_remote(remote);
+
+                } else {
+                    forward_to_remote(remote, c, clen);
                 }
-                forward_to_remote(remote, c, clen);
             }
 
             break;

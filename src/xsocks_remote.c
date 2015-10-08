@@ -63,9 +63,7 @@ new_remote(uint16_t timeout, struct sockaddr *addr) {
 
 static void
 free_remote(struct remote_context *remote) {
-    if (remote->client != NULL) {
-        remote->client = NULL;
-    }
+    remote->client = NULL;
     free(remote);
 }
 
