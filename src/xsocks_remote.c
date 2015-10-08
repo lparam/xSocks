@@ -63,9 +63,7 @@ new_remote(uint16_t timeout, struct sockaddr *addr) {
 
 static void
 free_remote(struct remote_context *remote) {
-    if (remote->client != NULL) {
-        remote->client = NULL;
-    }
+    remote->client = NULL;
     free(remote);
 }
 
@@ -90,6 +88,7 @@ remote_close_cb(uv_handle_t *handle) {
 
 void
 close_remote(struct remote_context *remote) {
+    if (remote == NULL) return;
     assert(uv_is_closing(&remote->handle.handle) == 0);
 
     remote->timer->data = NULL;

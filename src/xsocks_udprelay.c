@@ -156,7 +156,7 @@ server_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
             char dst[INET6_ADDRSTRLEN + 1] = {0};
             uint16_t dst_port = 0;
             dst_port = ip_name(&client->addr, dst, sizeof dst);
-            logger_log(LOG_INFO, "%s -> %s:%d", client->target_addr, dst, dst_port);
+            logger_log(LOG_INFO, "%s <- %s:%d", dst, dst_port, client->target_addr);
         }
 
         forward_to_client(client, m , mlen);
