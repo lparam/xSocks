@@ -1,3 +1,8 @@
+v0.3.1 (2015-10-8)
+-----------
+* Fix: Close remote
+
+
 v0.3.0 (2015-10-1)
 -----------
 * Feature: Support ACL
