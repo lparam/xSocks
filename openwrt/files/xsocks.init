@@ -13,10 +13,12 @@ IP_ROUTE_TABLE_NUMBER=100
 FWMARK="0x01/0x01"
 SETNAME=wall
 CHAIN=XSOCKS
+BLACK_LIST=/etc/black_list
 
 
 start() {
     tproxy_start
+    acl add
     mkdir -p /var/run/xsocks
     xsocks -s $SERVER -k $PASSWORD
     xtproxy -s $SERVER -k $PASSWORD
@@ -25,6 +27,7 @@ start() {
 
 stop() {
     tproxy_stop
+    acl del
     xsocks --signal stop
     xtproxy --signal stop
     xforwarder --signal stop
@@ -32,6 +35,7 @@ stop() {
 
 shutdown() {
     tproxy_stop
+    acl del
     xsocks --signal quit
     xtproxy --signal quit
     xforwarder --signal quit
@@ -78,4 +82,16 @@ tproxy_stop() {
 
     ip rule del fwmark $FWMARK table $IP_ROUTE_TABLE_NUMBER > /dev/null 2>&1
     ip route del local 0.0.0.0/0 dev lo table $IP_ROUTE_TABLE_NUMBER > /dev/null 2>&1
+}
+
+acl() {
+    if [ ! -f $BLACK_LIST ]; then
+        exit 1
+    fi
+
+    while read line;do
+        [ -z "$line" ] && continue
+        case "$line" in \#*) continue ;; esac
+        ipset $1 $SETNAME $line --exist
+    done < $BLACK_LIST
 }
