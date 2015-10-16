@@ -61,12 +61,22 @@ ECHOCOLOR="\033[32;1m"
 ENDCOLOR="\033[0m"
 
 ifndef V
-QUIET_CC = @printf '    %b %b\n' $(CCCOLOR)CC$(ENDCOLOR) $(SRCCOLOR)$@$(ENDCOLOR) 1>&2;
-QUIET_LINK = @printf '    %b %b\n' $(LINKCOLOR)LINK$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR) 1>&2;
-QUIET_AR = @printf '    %b %b\n' $(LINKCOLOR)AR$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR) 1>&2;
-QUIET_RANLIB = @printf '    %b %b\n' $(LINKCOLOR)RANLIB$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR) 1>&2;
+QUIET_CC = @printf '    %b %b\n' $(CCCOLOR)CC$(ENDCOLOR) $(SRCCOLOR)$(subst $(OBJTREE)/,,$@)$(ENDCOLOR) 1>&2;
+QUIET_LINK = @printf '    %b %b\n' $(LINKCOLOR)LINK$(ENDCOLOR) $(BINCOLOR)$(subst $(OBJTREE)/,,$@)$(ENDCOLOR) 1>&2;
+QUIET_AR = @printf '    %b %b\n' $(LINKCOLOR)AR$(ENDCOLOR) $(BINCOLOR)$(subst $(OBJTREE)/,,$@)$(ENDCOLOR) 1>&2;
+QUIET_RANLIB = @printf '    %b %b\n' $(LINKCOLOR)RANLIB$(ENDCOLOR) $(BINCOLOR)$(subst $(OBJTREE)/,,$@)$(ENDCOLOR) 1>&2;
 QUIET_INSTALL = @printf '    %b %b\n' $(LINKCOLOR)INSTALL$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR) 1>&2;
 QUIET_STRIP_OPTION = > /dev/null
+endif
+
+ifneq ($(OBJTREE),$(SRCTREE))
+define nicename
+@echo $(subst $(OBJTREE)/,,$1)
+endef
+else
+define nicename
+@echo $(subst $(OBJTREE)/,,$(CURDIR)/$1)
+endef
 endif
 
 ifneq ($(OBJTREE),$(SRCTREE))
@@ -75,6 +85,10 @@ else
 cobj = $(subst $(OBJTREE)/,,$(CURDIR)/$@)
 endif
 
-$(obj)%.o:	%.c
-	$(shell [ -d $(dir $@) ] || mkdir -p $(dir $@))
-	$(CCC) -c $< -o $(cobj)
+%.o: %.c
+	$(shell [ -d $(dir $(OBJTREE)/$@) ] || mkdir -p $(dir $@))
+	$(CCC) -c $< -o $(obj)$@
+
+$(obj)%.o: %.c
+	$(shell [ -d $(dir $(OBJTREE)/$@) ] || mkdir -p $(dir $@))
+	$(CCC) -c $< -o $@
