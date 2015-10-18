@@ -1,3 +1,8 @@
+v0.4.1 (2015-10-18)
+-----------
+* Hotfix: Openwrt build script
+
+
 v0.4.0 (2015-10-18)
 -----------
 * Feature: Protect Android VpnService
