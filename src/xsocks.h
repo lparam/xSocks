@@ -29,6 +29,7 @@ struct client_context {
 struct remote_context {
     int stage;
     int direct;
+    uv_os_sock_t tcp_fd;
     union {
         uv_handle_t handle;
         uv_stream_t stream;
@@ -58,6 +59,9 @@ void receive_from_remote(struct remote_context *remote);
 void forward_to_remote(struct remote_context *remote, uint8_t *buf, int buflen);
 void reset_timer(struct remote_context *remote);
 
+#ifdef ANDROID
+int vpn;
+#endif
 int acl;
 int verbose;
 uint16_t idle_timeout;

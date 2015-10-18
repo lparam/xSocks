@@ -7,6 +7,9 @@
 #ifndef _WIN32
 #include <syslog.h>
 #endif
+#ifdef ANDROID
+#include <android/log.h>
+#endif
 
 #include "uv.h"
 #include "logger.h"
@@ -29,9 +32,11 @@ static const char *levels[] = {
     "EMERG", "ALERT", "CRIT", "ERR", "WARN", "NOTICE", "INFO", "DEBUG"
 };
 
+#ifndef ANDROID
 static const char *colors[] = {
     "\033[01;31m", "\033[01;31m", "\033[01;31m", "\033[01;31m", "\033[01;33m", "\033[01;33m", "\033[01;32m", "\033[01;36m"
 };
+#endif
 
 
 #ifdef _WIN32
@@ -63,10 +68,6 @@ log2std(FILE *file, const char *msg) {
 
 void
 logger_log(uint32_t level, const char *msg, ...) {
-    char timestr[20];
-    time_t curtime = time(NULL);
-    struct tm *loctime = localtime(&curtime);
-
 	char tmp[LOG_MESSAGE_SIZE];
 
 	va_list ap;
@@ -76,15 +77,31 @@ logger_log(uint32_t level, const char *msg, ...) {
 
     if (_syslog) {
         syslog(level, "[%s] %s", levels[level], tmp);
+
     } else {
+#ifdef ANDROID
+        if (level <= LOG_ERR) {
+            level = ANDROID_LOG_ERROR;
+        } else if (level == LOG_WARNING) {
+            level = ANDROID_LOG_WARN;
+        } else if (level == LOG_DEBUG) {
+            level = ANDROID_LOG_DEBUG;
+        } else {
+            level = ANDROID_LOG_INFO;
+        }
+        __android_log_print(level, "xsocks", tmp);
+#else
+        time_t curtime = time(NULL);
+        struct tm *loctime = localtime(&curtime);
+        char timestr[20];
         strftime(timestr, 20, "%Y/%m/%d %H:%M:%S", loctime);
         char m[300] = { 0 };
         sprintf(m, "%s%s [%s]\033[0m: %s\n", colors[level], timestr, levels[level], tmp);
-
 #ifdef _WIN32
         log2tty(&_tty, m);
 #else
         log2std(stdout, m);
+#endif
 #endif
     }
 }

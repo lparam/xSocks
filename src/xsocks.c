@@ -40,6 +40,9 @@ static const struct option _lopts[] = {
     { "",        required_argument,   NULL, 't' },
     { "",        required_argument,   NULL, 's' },
     { "",        no_argument,         NULL, 'n' },
+#ifdef ANDROID
+    { "vpn",     no_argument,         NULL,  0  },
+#endif
     { "acl",     required_argument,   NULL,  0  },
     { "signal",  required_argument,   NULL,  0  },
     { "version", no_argument,         NULL, 'v' },
@@ -66,6 +69,9 @@ print_usage(const char *prog) {
          "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xsocks.pid)\n"
 #endif
          "  [--acl <aclfile>]\t : ACL (Access Control List) file path\n"
+#ifdef ANDROID
+         "  [--vpn]\t : protect vpn socket\n"
+#endif
 #ifndef _WIN32
          "  [--signal <signal>]\t : send signal to xsocks: quit, stop\n"
          "  [-n]\t\t\t : non daemon mode\n"
@@ -125,6 +131,11 @@ parse_opts(int argc, char *argv[]) {
                 fprintf(stderr, "invalid option: --signal %s\n", xsignal);
                 print_usage(argv[0]);
             }
+#ifdef ANDROID
+            if (strcmp("vpn", _lopts[longindex].name) == 0) {
+                vpn = 1;
+            }
+#endif
             if (strcmp("acl", _lopts[longindex].name) == 0) {
                 acl_file = optarg;
             }
@@ -204,7 +215,11 @@ setup_signal(uv_loop_t *loop, uv_signal_cb cb, void *data) {
 
 static void
 init(void) {
+#ifdef ANDROID
+    logger_init(0);
+#else
     logger_init(daemon_mode);
+#endif
 
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);

@@ -12,22 +12,18 @@ if [ "x$TARGET_ARCH" = 'x' ] || [ "x$ARCH" = 'x' ] || [ "x$HOST_COMPILER" = 'x' 
 fi
 
 export MAKE_TOOLCHAIN="${ANDROID_NDK_HOME}/build/tools/make-standalone-toolchain.sh"
-
-export PREFIX="$(pwd)/xsocks-android-${TARGET_ARCH}"
 export TOOLCHAIN_DIR="$(pwd)/android-toolchain-${TARGET_ARCH}"
+export PREFIX="$(pwd)/xsocks-android-${TARGET_ARCH}"
 export PATH="${PATH}:${TOOLCHAIN_DIR}/bin"
 
-rm -rf "${TOOLCHAIN_DIR}" "${PREFIX}"
+if [ ! -d $TOOLCHAIN_DIR ]; then
+    bash $MAKE_TOOLCHAIN \
+        --arch=$ARCH \
+        --install-dir=$TOOLCHAIN_DIR \
+        --platform=android-9
+fi
 
-bash $MAKE_TOOLCHAIN \
-    --arch=$ARCH \
-    --install-dir=$TOOLCHAIN_DIR \
-    --platform=android-9
-
-make distclean
-make V=1 CROSS="${HOST_COMPILER}-" libuv libsodium xsocks xforwarder
-mkdir -p $PREFIX
-cp -a xsocks xforwarder $PREFIX
+make CROSS="${HOST_COMPILER}-" O="${PREFIX}" android
 ${HOST_COMPILER}-strip --strip-unneeded $PREFIX/xsocks
 ${HOST_COMPILER}-strip --strip-unneeded $PREFIX/xforwarder
 echo "xsocks has been installed into $PREFIX"

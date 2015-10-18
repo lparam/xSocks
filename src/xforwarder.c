@@ -190,7 +190,11 @@ setup_signal(uv_loop_t *loop, uv_signal_cb cb, void *data) {
 
 static void
 init(void) {
+#ifdef ANDROID
+    logger_init(0);
+#else
     logger_init(daemon_mode);
+#endif
 
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);

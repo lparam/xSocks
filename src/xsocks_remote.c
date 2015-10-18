@@ -103,13 +103,11 @@ close_remote(struct remote_context *remote) {
 
 static void
 forward_client_request_packet(struct remote_context *remote, struct client_context *client) {
-    if (!remote->direct) {
-        int clen = client->buflen + PRIMITIVE_BYTES;
-        uint8_t *c = client->buf + HEADER_BYTES;
-        int rc = crypto_encrypt(c, client->buf + OVERHEAD_BYTES, client->buflen);
-        if (!rc) {
-            forward_to_remote(remote, c, clen);
-        }
+    int clen = client->buflen + PRIMITIVE_BYTES;
+    uint8_t *c = client->buf + HEADER_BYTES;
+    int rc = crypto_encrypt(c, client->buf + OVERHEAD_BYTES, client->buflen);
+    if (!rc) {
+        forward_to_remote(remote, c, clen);
     }
 }
 
@@ -119,7 +117,9 @@ remote_connect_cb(uv_connect_t *req, int status) {
     struct client_context *client = remote->client;
 
     if (status == 0) {
-        forward_client_request_packet(remote, client);
+        if (!remote->direct) {
+            forward_client_request_packet(remote, client);
+        }
 
         remote->stage = XSTAGE_FORWARD;
         reset_timer(remote);
@@ -164,6 +164,7 @@ void
 connect_to_remote(struct remote_context *remote) {
     remote->stage = XSTAGE_CONNECT;
     remote->connect_req.data = remote;
+
     int rc = uv_tcp_connect(&remote->connect_req, &remote->handle.tcp, &remote->addr, remote_connect_cb);
     if (rc) {
         logger_log(LOG_ERR, "connect to remote error: %s", uv_strerror(rc));
