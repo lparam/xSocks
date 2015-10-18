@@ -1,6 +1,6 @@
 MAJOR = 0
 MINOR = 4
-PATCH = 0
+PATCH = 1
 NAME = xsocks
 
 ifdef O
@@ -36,9 +36,10 @@ endif
 ifdef CROSS
 CROSS_COMPILE = $(CROSS)
 HOST = $(patsubst %-,%,$(CROSS_COMPILE))
+endif
+
 ifneq (,$(findstring openwrt,$(CROSS_COMPILE)))
 OPENWRT = 1
-endif
 endif
 
 ifdef CROSS_COMPILE
@@ -74,7 +75,8 @@ ifneq ($(OBJTREE),$(SRCTREE))
 CPPFLAGS += -I3rd/libsodium/src/libsodium/include/sodium
 CPPFLAGS += -I$(OBJTREE)/3rd/libsodium/src/libsodium/include
 endif
-CPPFLAGS += -I3rd/c-ares -I3rd/libcork/include -I3rd/libipset/include
+CPPFLAGS += -I3rd/c-ares
+CPPFLAGS += -I3rd/libcork/include -I3rd/libipset/include
 
 ifdef ANDROID
 	CPPFLAGS += -I3rd/libancillary
@@ -115,13 +117,13 @@ include $(SRCTREE)/config.mk
 #########################################################################
 
 ifdef OPENWRT
-all: libuv libsodium xsocks xtproxy xforwarder xtunnel
+all: libuv libsodium $(XSOCKS) $(XTPROXY) $(XFORWARDER) $(XTUNNEL)
 else
 all: libuv libsodium c-ares $(XSOCKSD) $(XSOCKS) $(XTPROXY) $(XFORWARDER) $(XTUNNEL)
 endif
 
 android: libuv libsodium $(XSOCKS) $(XFORWARDER)
-mingw32: libuv libsodium c-ares xsocksd.exe xsocks.exe xforwarder.exe xtunnel.exe
+mingw32: libuv libsodium c-ares $(XSOCKS).exe $(XTPROXY).exe $(XFORWARDER).exe $(XTUNNEL).exe
 
 3rd/libuv/autogen.sh:
 	$(Q)git submodule update --init
@@ -220,7 +222,7 @@ $(XSOCKSD): \
 	$(OBJTREE)/src/xsocksd.o
 	$(LINK) $^ -o $@ $(LDFLAGS) $(OBJTREE)/3rd/c-ares/.libs/libcares.a
 else
-xsocksd.exe: \
+$(XSOCKSD).exe: \
 	src/util.o \
 	src/logger.o \
 	src/common.o \
@@ -262,7 +264,7 @@ $(XSOCKS): \
 	| lib3rd
 	$(LINK) $^ -o $@ $(LDFLAGS) $(LIB3RD)
 else
-xsocks.exe: \
+$(XSOCKS).exe: \
 	src/util.o \
 	src/logger.o \
 	src/common.o \
@@ -308,7 +310,7 @@ $(XFORWARDER): \
 	$(OBJTREE)/src/xforwarder.o
 	$(LINK) $^ -o $@ $(LDFLAGS)
 else
-xforwarder.exe: \
+$(XFORWARDER).exe: \
 	src/util.o \
 	src/logger.o \
 	src/crypto.o \
@@ -336,7 +338,7 @@ $(XTUNNEL): \
 	$(OBJTREE)/src/xtunnel.o
 	$(LINK) $^ -o $@ $(LDFLAGS)
 else
-xtunnel.exe: \
+$(XTUNNEL).exe: \
 	src/util.o \
 	src/logger.o \
 	src/crypto.o \
