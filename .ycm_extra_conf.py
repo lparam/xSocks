@@ -15,6 +15,7 @@ flags = [
 '-I3rd/c-ares',
 '-I3rd/libuv/include',
 '-I3rd/libsodium/src/libsodium/include',
+'-I3rd/libancillary',
 '-I3rd/libcork/include',
 '-I3rd/libipset/include',
 ]

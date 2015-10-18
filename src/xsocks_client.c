@@ -9,6 +9,7 @@
 #include "util.h"
 #include "logger.h"
 #include "crypto.h"
+#include "common.h"
 #include "socks.h"
 #include "xsocks.h"
 
@@ -254,12 +255,45 @@ request_start(struct client_context *client, char *req_buf) {
     uv_timer_init(client->handle.stream.loop, remote->timer);
     uv_tcp_init(client->handle.stream.loop, &remote->handle.tcp);
 
+#ifdef ANDROID
+    if (vpn) {
+        uv_os_fd_t fd;
+
+        remote->tcp_fd = create_socket(SOCK_STREAM, 0);
+        int rc = uv_tcp_open(&remote->handle.tcp, remote->tcp_fd);
+        if (rc) {
+            logger_stderr("tcp open error: %s", uv_strerror(rc));
+            goto error;
+        }
+
+        rc = uv_fileno((uv_handle_t*) &remote->handle, &fd);
+        if (rc == UV_EBADF) {
+            logger_log(LOG_ERR, "get handle fd");
+            goto error;
+
+        } else {
+            rc = protect_socket(fd);
+            if (rc == -1) {
+                logger_log(LOG_ERR, "protect_socket");
+                goto error;
+            }
+        }
+    }
+#endif
+
     if (verbose && !direct) {
         logger_log(LOG_INFO, "connect to %s", client->target_addr);
     }
 
     reset_timer(remote);
     connect_to_remote(remote);
+
+#ifdef ANDROID
+    return;
+error:
+    close_client(client);
+    close_remote(remote);
+#endif
 }
 
 static void

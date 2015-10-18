@@ -55,6 +55,7 @@ CFLAGS = \
 CFLAGS += -fomit-frame-pointer -fdata-sections -ffunction-sections
 
 ifneq (,$(findstring android,$(CROSS_COMPILE)))
+CPPFLAGS += -DANDROID
 CFLAGS += -pie -fPIE
 ANDROID = 1
 endif
@@ -75,10 +76,15 @@ CPPFLAGS += -I$(OBJTREE)/3rd/libsodium/src/libsodium/include
 endif
 CPPFLAGS += -I3rd/c-ares -I3rd/libcork/include -I3rd/libipset/include
 
+ifdef ANDROID
+	CPPFLAGS += -I3rd/libancillary
+endif
+
 LDFLAGS = -Wl,--gc-sections
 
 ifdef ANDROID
 LDFLAGS += -pie -fPIE
+LIBS += -llog
 else
 	ifndef MINGW32
 		LIBS += -lrt
@@ -87,6 +93,7 @@ endif
 
 LIBCORK = $(OBJTREE)/3rd/libcork/libcork.a
 LIBIPSET = $(OBJTREE)/3rd/libipset/libipset.a
+LIBANCILLARY = $(OBJTREE)/3rd/libancillary/libancillary.a
 LIBS += $(OBJTREE)/3rd/libuv/.libs/libuv.a $(OBJTREE)/3rd/libsodium/src/libsodium/.libs/libsodium.a
 
 ifdef MINGW32
@@ -181,7 +188,19 @@ $(LIBIPSET): \
 	$(BUILD_AR) rcu $@ $^
 	$(BUILD_RANLIB) $@
 
+$(LIBANCILLARY): \
+	$(OBJTREE)/3rd/libancillary/fd_recv.o \
+	$(OBJTREE)/3rd/libancillary/fd_send.o
+	$(BUILD_AR) rcu $@ $^
+	$(BUILD_RANLIB) $@
+
+ifdef ANDROID
+LIB3RD = $(LIBIPSET) $(LIBCORK) $(LIBANCILLARY)
+lib3rd: $(LIBCORK) $(LIBIPSET) $(LIBANCILLARY)
+else
+LIB3RD = $(LIBIPSET) $(LIBCORK)
 lib3rd: $(LIBCORK) $(LIBIPSET)
+endif
 
 ifndef MINGW32
 $(XSOCKSD): \
@@ -217,8 +236,7 @@ xsocksd.exe: \
 	$(LINK) $^ -o $@ 3rd/c-ares/.libs/libcares.a $(LDFLAGS)
 endif
 
-ifndef MINGW32
-$(XSOCKS): \
+XSOCKS_OBJS = \
 	$(OBJTREE)/src/acl.o \
 	$(OBJTREE)/src/util.o \
 	$(OBJTREE)/src/logger.o \
@@ -232,9 +250,17 @@ $(XSOCKS): \
 	$(OBJTREE)/src/xsocks_udprelay.o \
 	$(OBJTREE)/src/xsocks_client.o \
 	$(OBJTREE)/src/xsocks_remote.o \
-	$(OBJTREE)/src/xsocks.o \
+	$(OBJTREE)/src/xsocks.o
+
+ifdef ANDROID
+	XSOCKS_OBJS += $(OBJTREE)/src/android.o
+endif
+
+ifndef MINGW32
+$(XSOCKS): \
+	$(XSOCKS_OBJS) \
 	| lib3rd
-	$(LINK) $^ -o $@ $(LDFLAGS) $(LIBIPSET) $(LIBCORK)
+	$(LINK) $^ -o $@ $(LDFLAGS) $(LIB3RD)
 else
 xsocks.exe: \
 	src/util.o \
@@ -323,13 +349,17 @@ xtunnel.exe: \
 endif
 
 clean:
-	@find src $(OBJTREE)/src $(OBJTREE)/3rd/libcork $(OBJTREE)/3rd/libipset -type f \
-	\( -name '*.bak' -o -name '*~' \
-	-o -name '*.o' -o -name '*.tmp' \) -print \
+	@find $(OBJTREE)/src -type f \
+	\( -name '*.o' -o -name '*~' \
+	-o -name '*.tmp' \) -print \
 	| xargs rm -f
 	@rm -f $(XSOCKSD) $(XSOCKS) $(XTPROXY) $(XFORWARDER) $(XTUNNEL)
 
 distclean: clean
+	@find $(OBJTREE)/3rd/libcork $(OBJTREE)/3rd/libipset -type f \
+	\( -name '*.o' -o -name '*~' \
+	-o -name '*.tmp' \) -print \
+	| xargs rm -f
 ifeq ($(OBJTREE)/3rd/libsodium/Makefile, $(wildcard $(OBJTREE)/3rd/libsodium/Makefile))
 	$(Q)cd $(OBJTREE)/3rd/libsodium && make distclean
 endif
