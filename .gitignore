@@ -45,8 +45,8 @@ tags
 *.user
 .ycm_extra_conf.pyc
 
-/xsocksd
-/xsocks
+/xSocksd
+/xSocks
 /xtproxy
 /xforwarder
 /xtunnel

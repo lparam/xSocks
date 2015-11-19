@@ -133,7 +133,7 @@ server_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
 
         /*
          *
-         * xsocks UDP Response
+         * xSocks UDP Response
          * +------+----------+----------+----------+
          * | ATYP | DST.ADDR | DST.PORT |   DATA   |
          * +------+----------+----------+----------+
@@ -290,7 +290,7 @@ poll_cb(uv_poll_t *watcher, int status, int events) {
 
         /*
          *
-         * xsocks UDP Request
+         * xSocks UDP Request
          * +------+----------+----------+----------+
          * | ATYP | DST.ADDR | DST.PORT |   DATA   |
          * +------+----------+----------+----------+

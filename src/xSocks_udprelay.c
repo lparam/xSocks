@@ -125,7 +125,7 @@ forward_to_client(struct client_context *client, uint8_t *data, ssize_t len) {
 
 /*
  *
- * xsocks UDP Response
+ * xSocks UDP Response
  * +------+----------+----------+----------+
  * | ATYP | DST.ADDR | DST.PORT |   DATA   |
  * +------+----------+----------+----------+
@@ -183,7 +183,7 @@ server_send_cb(uv_udp_send_t *req, int status) {
 
 /*
  *
- * xsocks UDP Request
+ * xSocks UDP Request
  * +------+----------+----------+----------+
  * | ATYP | DST.ADDR | DST.PORT |   DATA   |
  * +------+----------+----------+----------+
@@ -227,7 +227,7 @@ client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
             goto err;
         }
 
-        struct xsocks_request *request = (struct xsocks_request *)(buf->base + 3);
+        struct xSocks_request *request = (struct xSocks_request *)(buf->base + 3);
         struct sockaddr dest_addr;
         char host[256] = {0};
         int addrlen = parse_target_address(request, &dest_addr, host);

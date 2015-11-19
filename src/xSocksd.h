@@ -7,7 +7,7 @@
 #include "resolver.h"
 
 
-#define XSOCKSD_VER          "xsocksd/" XSOCKS_VERSION
+#define XSOCKSD_VER          "xSocksd/" XSOCKS_VERSION
 
 
 struct client_context {

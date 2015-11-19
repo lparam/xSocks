@@ -17,7 +17,7 @@ static int daemon_mode = 1;
 static int concurrency = 0;
 static char *local_addr = "0.0.0.0:5533";
 static char *server_addr_buf;
-static char *pidfile = "/var/run/xsocks/xforwarder.pid";
+static char *pidfile = "/var/run/xSocks/xforwarder.pid";
 static char *password = NULL;
 static char *xsignal;
 #ifndef _WIN32
@@ -52,7 +52,7 @@ print_usage(const char *prog) {
          "  [-t <timeout>]\t : connection timeout in senconds\n"
 #ifndef _WIN32
          "  [-c <concurrency>]\t : worker threads\n"
-         "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xforwarder.pid)\n"
+         "  [-p <pidfile>]\t : pid file path (default: /var/run/xSocks/xforwarder.pid)\n"
          "  [--signal <signal>]\t : send signal to xforwarder: quit, stop\n"
          "  [-n]\t\t\t : non daemon mode\n"
 #endif

@@ -113,7 +113,7 @@ forward_to_client(struct client_context *client, uint8_t *data, ssize_t len) {
 
 /*
  *
- * xsocks UDP Response
+ * xSocks UDP Response
  * +------+----------+----------+----------+
  * | ATYP | DST.ADDR | DST.PORT |   DATA   |
  * +------+----------+----------+----------+
@@ -162,7 +162,7 @@ server_send_cb(uv_udp_send_t *req, int status) {
 
 /*
  *
- * xsocks UDP Request
+ * xSocks UDP Request
  * +------+----------+----------+----------+
  * | ATYP | DST.ADDR | DST.PORT |   DATA   |
  * +------+----------+----------+----------+

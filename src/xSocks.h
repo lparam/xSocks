@@ -6,7 +6,7 @@
 #include "packet.h"
 
 
-#define XSOCKS_VER          "xsocks/" XSOCKS_VERSION
+#define XSOCKS_VER          "xSocks/" XSOCKS_VERSION
 
 
 struct client_context {

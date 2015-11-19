@@ -35,7 +35,7 @@ protect_socket(int fd) {
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
     setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(struct timeval));
 
-    const char path[] = "/data/data/io.github.xsocks/protect_path";
+    const char path[] = "/data/data/io.github.xSocks/protect_path";
 
     memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_UNIX;

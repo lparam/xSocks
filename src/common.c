@@ -7,7 +7,7 @@
 #include "logger.h"
 
 int
-parse_target_address(const struct xsocks_request *req, struct sockaddr *addr, char *host) {
+parse_target_address(const struct xSocks_request *req, struct sockaddr *addr, char *host) {
     int addrlen;
     uint16_t portlen = 2; // network byte order port number, 2 bytes
     union {

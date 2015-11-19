@@ -1,7 +1,7 @@
 MAJOR = 0
 MINOR = 4
 PATCH = 1
-NAME = xsocks
+NAME = xSocks
 
 ifdef O
 ifeq ("$(origin O)", "command line")
@@ -106,8 +106,8 @@ endif
 
 LDFLAGS += $(LIBS)
 
-XSOCKSD=$(OBJTREE)/xsocksd
-XSOCKS=$(OBJTREE)/xsocks
+XSOCKSD=$(OBJTREE)/xSocksd
+XSOCKS=$(OBJTREE)/xSocks
 XTPROXY=$(OBJTREE)/xtproxy
 XFORWARDER=$(OBJTREE)/xforwarder
 XTUNNEL=$(OBJTREE)/xtunnel
@@ -216,10 +216,10 @@ $(XSOCKSD): \
 	$(OBJTREE)/src/consumer.o \
 	$(OBJTREE)/src/cache.o \
 	$(OBJTREE)/src/packet.o \
-	$(OBJTREE)/src/xsocksd_udprelay.o \
-	$(OBJTREE)/src/xsocksd_client.o \
-	$(OBJTREE)/src/xsocksd_remote.o \
-	$(OBJTREE)/src/xsocksd.o
+	$(OBJTREE)/src/xSocksd_udprelay.o \
+	$(OBJTREE)/src/xSocksd_client.o \
+	$(OBJTREE)/src/xSocksd_remote.o \
+	$(OBJTREE)/src/xSocksd.o
 	$(LINK) $^ -o $@ $(LDFLAGS) $(OBJTREE)/3rd/c-ares/.libs/libcares.a
 else
 $(XSOCKSD).exe: \
@@ -231,10 +231,10 @@ $(XSOCKSD).exe: \
 	src/consumer.o \
 	src/cache.o \
 	src/packet.o \
-	src/xsocksd_udprelay.o \
-	src/xsocksd_client.o \
-	src/xsocksd_remote.o \
-	src/xsocksd.o
+	src/xSocksd_udprelay.o \
+	src/xSocksd_client.o \
+	src/xSocksd_remote.o \
+	src/xSocksd.o
 	$(LINK) $^ -o $@ 3rd/c-ares/.libs/libcares.a $(LDFLAGS)
 endif
 
@@ -249,10 +249,10 @@ XSOCKS_OBJS = \
 	$(OBJTREE)/src/consumer.o \
 	$(OBJTREE)/src/cache.o \
 	$(OBJTREE)/src/packet.o \
-	$(OBJTREE)/src/xsocks_udprelay.o \
-	$(OBJTREE)/src/xsocks_client.o \
-	$(OBJTREE)/src/xsocks_remote.o \
-	$(OBJTREE)/src/xsocks.o
+	$(OBJTREE)/src/xSocks_udprelay.o \
+	$(OBJTREE)/src/xSocks_client.o \
+	$(OBJTREE)/src/xSocks_remote.o \
+	$(OBJTREE)/src/xSocks.o
 
 ifdef ANDROID
 	XSOCKS_OBJS += $(OBJTREE)/src/android.o
@@ -272,10 +272,10 @@ $(XSOCKS).exe: \
 	src/consumer.o \
 	src/cache.o \
 	src/packet.o \
-	src/xsocks_udprelay.o \
-	src/xsocks_client.o \
-	src/xsocks_remote.o \
-	src/xsocks.o
+	src/xSocks_udprelay.o \
+	src/xSocks_client.o \
+	src/xSocks_remote.o \
+	src/xSocks.o
 	$(LINK) $^ -o $@ $(LDFLAGS)
 endif
 

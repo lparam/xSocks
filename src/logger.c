@@ -89,7 +89,7 @@ logger_log(uint32_t level, const char *msg, ...) {
         } else {
             level = ANDROID_LOG_INFO;
         }
-        __android_log_print(level, "xsocks", tmp);
+        __android_log_print(level, "xSocks", tmp);
 #else
         time_t curtime = time(NULL);
         struct tm *loctime = localtime(&curtime);

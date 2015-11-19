@@ -14,7 +14,7 @@ struct socks5_method_response {
     char method;
 };
 
-struct xsocks_request {
+struct xSocks_request {
     char atyp;
     char addr[0];
 };
@@ -47,7 +47,7 @@ enum s5_auth_result {
     S5_AUTH_DENY = 0x01,
 };
 
-enum xsocks_atyp {
+enum xSocks_atyp {
     ATYP_IPV4 = 0x01,
     ATYP_HOST = 0x03,
     ATYP_IPV6 = 0x04,

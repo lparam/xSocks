@@ -1,11 +1,11 @@
-xsocks
+xSocks
 =================
 A secure and fast proxy for protect your network traffic
 
 Introdution
 ------------
-* xsocksd: Backend of xsocks, xtproxy, xforwarder
-* xsocks: A socks5 server
+* xSocksd: Backend of xSocks, xtproxy, xforwarder
+* xSocks: A socks5 server
 * xtproxy: A Transparent Proxy
 * xforwarder: Forward data to a specific server
 * xtunnel: Like xforwarder, but standalone and specify target on server side
@@ -14,7 +14,7 @@ Features
 ------------
 * Transparent Proxy for all tcp traffic and udp packet
 * Multithreading
-* Cross-platform, including PC (Linux, [Windows](https://github.com/lparam/xsocks-windows)), Mobile ([Android](https://github.com/lparam/xsocks-android)) and Router (OpenWRT)
+* Cross-platform, including PC (Linux, [Windows](https://github.com/lparam/xSocks-windows)), Mobile ([Android](https://github.com/lparam/xSocks-android)) and Router (OpenWRT)
 
 BUILD
 ------------
@@ -29,8 +29,8 @@ make && sudo make install
 
 ```bash
 # At OpenWRT build root
-git clone https://github.com/lparam/xsocks.git package/xsocks
-make package/xsocks/openwrt/compile
+git clone https://github.com/lparam/xSocks.git package/xSocks
+make package/xSocks/openwrt/compile
 ```
 
 ### Windows
@@ -48,24 +48,24 @@ Usage
 ### Server
 
 ```bash
-xsocksd -k PASSWORD
+xSocksd -k PASSWORD
 xtunnel -m server -k PASSWORD -t TARGET:PORT
 ```
 
 Multithreading:
 ```bash
-xsocksd -k PASSWORD -c THREADS
+xSocksd -k PASSWORD -c THREADS
 ```
 
 Stop:
 ```bash
-xsocksd --signal stop
+xSocksd --signal stop
 ```
 
 ### Client
 
 ```bash
-xsocks -s SERVER:PORT -k PASSWORD
+xSocks -s SERVER:PORT -k PASSWORD
 xforwarder -s SERVER:PORT -k PASSWORD -d DESTINATION:PORT
 xtunnel -m client -k PASSWORD -t TARGET:PORT
 ```
@@ -76,10 +76,10 @@ Proxy all tcp traffic and udp packet transparently on gateway.
 
 ```bash
 root@OpenWrt:~# opkg install iptables-mod-tproxy
-root@OpenWrt:~# opkg install xsocks_VER_ARCH.ipk
+root@OpenWrt:~# opkg install xSocks_VER_ARCH.ipk
 ```
 
-Modify your SERVER and PASSWORD in /etc/init.d/xsocks
+Modify your SERVER and PASSWORD in /etc/init.d/xSocks
 ```bash
 #!/bin/sh /etc/rc.common
 # Copyright (C) 2006-2014 OpenWrt.org
@@ -100,22 +100,22 @@ CHAIN=XSOCKS
 
 start() {
     tproxy_start
-    mkdir -p /var/run/xsocks
-    xsocks -s $SERVER -k $PASSWORD
+    mkdir -p /var/run/xSocks
+    xSocks -s $SERVER -k $PASSWORD
     xtproxy -s $SERVER -k $PASSWORD
     xforwarder -l 0.0.0.0:5533 -d 8.8.8.8:53 -s $SERVER -k $PASSWORD
 }
 
 stop() {
     tproxy_stop
-    xsocks --signal stop
+    xSocks --signal stop
     xtproxy --signal stop
     xforwarder --signal stop
 }
 
 shutdown() {
     tproxy_stop
-    xsocks --signal quit
+    xSocks --signal quit
     xtproxy --signal quit
     xforwarder --signal quit
 }
@@ -165,7 +165,7 @@ tproxy_stop() {
 ```
 
 ```bash
-root@OpenWrt:~# /etc/init.d/xsocks start
+root@OpenWrt:~# /etc/init.d/xSocks start
 ```
 
 ```bash

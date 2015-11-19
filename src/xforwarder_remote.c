@@ -148,7 +148,7 @@ request_to_server(struct remote_context *remote) {
 
     /*
      *
-     * xsocks request
+     * xSocks request
      * +------+----------+----------+
      * | ATYP | BND.ADDR | BND.PORT |
      * +------+----------+----------+
@@ -158,14 +158,14 @@ request_to_server(struct remote_context *remote) {
      */
     if (addr->sa_family == AF_INET) {
         size_t in_addr_len = sizeof(struct in_addr);
-        buflen = sizeof(struct xsocks_request) + in_addr_len + portlen;
+        buflen = sizeof(struct xSocks_request) + in_addr_len + portlen;
         buf[0] = ATYP_IPV4;
         memcpy(buf + 1, &((struct sockaddr_in *)addr)->sin_addr, in_addr_len);
         memcpy(buf + 1 + in_addr_len, &((struct sockaddr_in *)addr)->sin_port, portlen);
 
     } else {
         size_t in6_addr_len = sizeof(struct in6_addr);
-        buflen = sizeof(struct xsocks_request) + sizeof(struct in6_addr) + portlen;
+        buflen = sizeof(struct xSocks_request) + sizeof(struct in6_addr) + portlen;
         buf[0] = ATYP_IPV6;
         memcpy(buf + 1, &((struct sockaddr_in6 *)addr)->sin6_addr, in6_addr_len);
         memcpy(buf + 1 + in6_addr_len, &((struct sockaddr_in6 *)addr)->sin6_port, portlen);

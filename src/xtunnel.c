@@ -19,7 +19,7 @@ static char *tunnel_mode;
 static char *source_addr = "0.0.0.0:1222";
 static char *dest_addr;
 static char *password = NULL;
-static char *pidfile = "/var/run/xsocks/xtunnel.pid";
+static char *pidfile = "/var/run/xSocks/xtunnel.pid";
 static char *xsignal;
 #ifndef _WIN32
 static struct signal_ctx signals[3];
@@ -53,7 +53,7 @@ print_usage(const char *prog) {
          "  -t <target>\t\t : target address:port\n"
          "  -k <password>\t\t : password of server\n"
 #ifndef _WIN32
-         "  [-p pidfile]\t\t : pid file path (default: /var/run/xsocks/xtunnel.pid)\n"
+         "  [-p pidfile]\t\t : pid file path (default: /var/run/xSocks/xtunnel.pid)\n"
          "  [-c concurrency]\t : worker threads\n"
          "  [--signal <signal>]\t : send signal to xtunnel: quit, stop\n"
 	     "  [-n]\t\t\t : non daemon mode\n"

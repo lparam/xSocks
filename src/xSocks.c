@@ -15,13 +15,13 @@
 #include "crypto.h"
 #include "daemon.h"
 #include "udprelay.h"
-#include "xsocks.h"
+#include "xSocks.h"
 
 static int daemon_mode = 1;
 static int concurrency = 0;
 static char *local_addr = "0.0.0.0:1080";
 static char *server_addr_buf;
-static char *pidfile = "/var/run/xsocks/xsocks.pid";
+static char *pidfile = "/var/run/xSocks/xSocks.pid";
 static char *password = NULL;
 static char *acl_file;
 static char *xsignal;
@@ -53,7 +53,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xsocks Version: %s Maintained by lparam\n", XSOCKS_VER);
+    printf("xSocks Version: %s Maintained by lparam\n", XSOCKS_VER);
 #ifdef _WIN32
     printf("Usage: %s [-l local] <-s server> <-k password> [-hvV]\n\n", prog);
 #else
@@ -66,14 +66,14 @@ print_usage(const char *prog) {
          "  [-t <timeout>]\t : connection timeout in senconds\n"
 #ifndef _WIN32
          "  [-c <concurrency>]\t : worker threads\n"
-         "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xsocks.pid)\n"
+         "  [-p <pidfile>]\t : pid file path (default: /var/run/xSocks/xSocks.pid)\n"
 #endif
          "  [--acl <aclfile>]\t : ACL (Access Control List) file path\n"
 #ifdef ANDROID
          "  [--vpn]\t : protect vpn socket\n"
 #endif
 #ifndef _WIN32
-         "  [--signal <signal>]\t : send signal to xsocks: quit, stop\n"
+         "  [--signal <signal>]\t : send signal to xSocks: quit, stop\n"
          "  [-n]\t\t\t : non daemon mode\n"
 #endif
          "  [-h, --help]\t\t : this help\n"
@@ -90,7 +90,7 @@ parse_opts(int argc, char *argv[]) {
     while ((opt = getopt_long(argc, argv, _optString, _lopts, &longindex)) != -1) {
         switch (opt) {
         case 'v':
-            printf("xsocks version: %s \n", XSOCKS_VER);
+            printf("xSocks version: %s \n", XSOCKS_VER);
             exit(0);
             break;
         case 'h':
@@ -268,7 +268,7 @@ main(int argc, char *argv[]) {
             return 1;
         }
         if (already_running(pidfile)) {
-            logger_stderr("xsocks already running.");
+            logger_stderr("xSocks already running.");
             return 1;
         }
     }
