@@ -9,7 +9,7 @@
 #include "logger.h"
 #include "crypto.h"
 #include "socks.h"
-#include "xforwarder.h"
+#include "xForwarder.h"
 
 
 static void remote_send_cb(uv_write_t *req, int status);

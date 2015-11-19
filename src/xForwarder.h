@@ -6,7 +6,7 @@
 #include "packet.h"
 
 
-#define XFORWARDER_VER          "xforwarder/" XSOCKS_VERSION
+#define XFORWARDER_VER          "xForwarder/" XSOCKS_VERSION
 
 
 struct client_context {

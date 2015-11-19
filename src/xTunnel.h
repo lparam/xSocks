@@ -6,7 +6,7 @@
 #include "packet.h"
 
 
-#define TUNNEL_VER          "xtunnel/" XSOCKS_VERSION
+#define TUNNEL_VER          "xTunnel/" XSOCKS_VERSION
 
 
 struct source_context {

@@ -2,15 +2,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <limits.h>
+
+#include <netinet/in.h>
+#include <linux/netfilter_ipv4.h>
 
 #include "uv.h"
 
 #include "util.h"
 #include "logger.h"
+#include "common.h"
 #include "crypto.h"
 #include "socks.h"
-#include "xforwarder.h"
+#include "xTproxy.h"
 
+
+#define SO_ORIGINAL_DST_IPV6 80
 
 static void client_alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
 static void client_send_cb(uv_write_t *req, int status);
@@ -102,7 +109,7 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
         }
 
     } else if (nread < 0) {
-        if (nread != UV_EOF) {
+        if (nread != UV_EOF && verbose) {
             logger_log(LOG_ERR, "receive from server failed: %s", uv_strerror(nread));
         }
         close_client(client);
@@ -110,24 +117,51 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
     }
 }
 
+static int
+getdestaddr(int fd, struct sockaddr *destaddr, sa_family_t family) {
+    socklen_t socklen = sizeof(*destaddr);
+    if (family == AF_INET6) {
+        return getsockopt(fd, SOL_IPV6, SO_ORIGINAL_DST_IPV6, destaddr, &socklen);
+    } else {
+        return getsockopt(fd, SOL_IP, SO_ORIGINAL_DST, destaddr, &socklen);
+    }
+}
+
 void
-client_accept_cb(uv_stream_t *server, int status) {
+client_accept_cb(uv_stream_t *handle, int status) {
+    struct server_context *server = container_of(handle, struct server_context, tcp);
     struct client_context *client = new_client();
     struct remote_context *remote = new_remote(idle_timeout);
 
     client->remote = remote;
     remote->client = client;
+    remote->server_addr = server->server_addr;
 
-    uv_timer_init(server->loop, remote->timer);
+    uv_timer_init(handle->loop, remote->timer);
 
-    uv_tcp_init(server->loop, &client->handle.tcp);
-    uv_tcp_init(server->loop, &remote->handle.tcp);
+    uv_tcp_init(handle->loop, &client->handle.tcp);
+    uv_tcp_init(handle->loop, &remote->handle.tcp);
 
-    int rc = uv_accept(server, &client->handle.stream);
+    int rc = uv_accept(handle, &client->handle.stream);
+
+    uv_os_fd_t fd;
+    uv_fileno(&client->handle.handle, &fd);
+    int err = getdestaddr(fd, &client->target_addr, server->local_addr->sa_family);
+    if (err) {
+        logger_log(LOG_ERR, "get original destination error: %s", strerror(errno));
+        exit(1);
+        return;
+    }
 
     if (rc == 0) {
         reset_timer(remote);
+        if (verbose) {
+            char addrbuf[INET6_ADDRSTRLEN + 1] = {0};
+            int port = ip_name(&client->target_addr, addrbuf, sizeof(addrbuf));
+            logger_log(LOG_INFO, "connect to %s:%d", addrbuf, port);
+        }
         connect_to_remote(remote);
+
     } else {
         logger_log(LOG_ERR, "accept error: %s", uv_strerror(rc));
         close_client(client);

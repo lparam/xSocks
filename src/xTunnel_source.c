@@ -7,7 +7,7 @@
 #include "util.h"
 #include "logger.h"
 #include "crypto.h"
-#include "xtunnel.h"
+#include "xTunnel.h"
 
 
 struct source_context *

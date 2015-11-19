@@ -4,11 +4,11 @@ A secure and fast proxy for protect your network traffic
 
 Introdution
 ------------
-* xSocksd: Backend of xSocks, xtproxy, xforwarder
+* xSocksd: Backend of xSocks, xTproxy, xForwarder
 * xSocks: A socks5 server
-* xtproxy: A Transparent Proxy
-* xforwarder: Forward data to a specific server
-* xtunnel: Like xforwarder, but standalone and specify target on server side
+* xTproxy: A Transparent Proxy
+* xForwarder: Forward data to a specific server
+* xTunnel: Like xForwarder, but standalone and specify target on server side
 
 Features
 ------------
@@ -49,7 +49,7 @@ Usage
 
 ```bash
 xSocksd -k PASSWORD
-xtunnel -m server -k PASSWORD -t TARGET:PORT
+xTunnel -m server -k PASSWORD -t TARGET:PORT
 ```
 
 Multithreading:
@@ -66,8 +66,8 @@ xSocksd --signal stop
 
 ```bash
 xSocks -s SERVER:PORT -k PASSWORD
-xforwarder -s SERVER:PORT -k PASSWORD -d DESTINATION:PORT
-xtunnel -m client -k PASSWORD -t TARGET:PORT
+xForwarder -s SERVER:PORT -k PASSWORD -d DESTINATION:PORT
+xTunnel -m client -k PASSWORD -t TARGET:PORT
 ```
 
 ### Transparent Proxy
@@ -102,22 +102,22 @@ start() {
     tproxy_start
     mkdir -p /var/run/xSocks
     xSocks -s $SERVER -k $PASSWORD
-    xtproxy -s $SERVER -k $PASSWORD
-    xforwarder -l 0.0.0.0:5533 -d 8.8.8.8:53 -s $SERVER -k $PASSWORD
+    xTproxy -s $SERVER -k $PASSWORD
+    xForwarder -l 0.0.0.0:5533 -d 8.8.8.8:53 -s $SERVER -k $PASSWORD
 }
 
 stop() {
     tproxy_stop
     xSocks --signal stop
-    xtproxy --signal stop
-    xforwarder --signal stop
+    xTproxy --signal stop
+    xForwarder --signal stop
 }
 
 shutdown() {
     tproxy_stop
     xSocks --signal quit
-    xtproxy --signal quit
-    xforwarder --signal quit
+    xTproxy --signal quit
+    xForwarder --signal quit
 }
 
 tproxy_start() {
