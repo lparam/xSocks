@@ -26,9 +26,9 @@ remote_timer_expire(uv_timer_t *handle) {
             char addrbuf[INET6_ADDRSTRLEN + 1] = {0};
             uint16_t port = ip_name(&client->addr, addrbuf, sizeof addrbuf);
             if (client->stage == XSTAGE_FORWARD) {
-                logger_log(LOG_WARNING, "%s:%d <-> %s connection timeout", addrbuf, port, client->target_addr);
+                logger_log(LOG_WARNING, "%s:%d <-> %s timeout", addrbuf, port, client->target_addr);
             } else {
-                logger_log(LOG_WARNING, "%s:%d connection timeout", addrbuf, port);
+                logger_log(LOG_WARNING, "%s:%d timeout", addrbuf, port);
             }
         }
     }

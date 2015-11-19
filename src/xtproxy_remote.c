@@ -29,7 +29,7 @@ remote_timer_expire(uv_timer_t *handle) {
         char addr2[INET6_ADDRSTRLEN + 1];
         int p1 = ip_name(&peername, addr1, sizeof addr2);
         int p2 = ip_name(&client->target_addr, addr2, sizeof(addr2));
-        logger_log(LOG_WARNING, "%s:%d <-> %s:%d connection timeout", addr1, p1, addr2, p2);
+        logger_log(LOG_WARNING, "%s:%d <-> %s:%d timeout", addr1, p1, addr2, p2);
     }
     close_client(client);
     close_remote(remote);

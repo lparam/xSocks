@@ -27,7 +27,7 @@ remote_timer_expire(uv_timer_t *handle) {
         uv_tcp_getpeername(&client->handle.tcp, &peername, &namelen);
         char addr[INET6_ADDRSTRLEN + 1];
         int port = ip_name(&peername, addr, sizeof addr);
-        logger_log(LOG_WARNING, "%s:%d <-> %s connection timeout", addr, port, dest_addr_buf);
+        logger_log(LOG_WARNING, "%s:%d <-> %s timeout", addr, port, dest_addr_buf);
     }
     close_client(client);
     close_remote(remote);
