@@ -13,7 +13,7 @@ fi
 
 export MAKE_TOOLCHAIN="${ANDROID_NDK_HOME}/build/tools/make-standalone-toolchain.sh"
 export TOOLCHAIN_DIR="$(pwd)/android-toolchain-${TARGET_ARCH}"
-export PREFIX="$(pwd)/xsocks-android-${TARGET_ARCH}"
+export PREFIX="$(pwd)/xSocks-android-${TARGET_ARCH}"
 export PATH="${PATH}:${TOOLCHAIN_DIR}/bin"
 
 if [ ! -d $TOOLCHAIN_DIR ]; then
@@ -24,6 +24,6 @@ if [ ! -d $TOOLCHAIN_DIR ]; then
 fi
 
 make CROSS="${HOST_COMPILER}-" O="${PREFIX}" android
-${HOST_COMPILER}-strip --strip-unneeded $PREFIX/xsocks
-${HOST_COMPILER}-strip --strip-unneeded $PREFIX/xforwarder
-echo "xsocks has been installed into $PREFIX"
+${HOST_COMPILER}-strip --strip-unneeded $PREFIX/xSocks
+${HOST_COMPILER}-strip --strip-unneeded $PREFIX/xForwarder
+echo "xSocks has been installed into $PREFIX"

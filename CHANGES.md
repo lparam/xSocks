@@ -1,3 +1,8 @@
+v0.4.3 (2015-10-18)
+-----------
+* Hotfix: Android build script
+
+
 v0.4.2 (2015-10-20)
 -----------
 * Change: Rename program name
