@@ -20,26 +20,26 @@ BLACK_LIST=/etc/black_list
 start() {
     tproxy_start
     acl add
-    mkdir -p /var/run/xsocks
-    xsocks -s $SERVER -k $PASSWORD
-    xtproxy -s $SERVER -k $PASSWORD
-    xforwarder -l 0.0.0.0:5533 -d $DNS:53 -s $SERVER -k $PASSWORD
+    mkdir -p /var/run/xSocks
+    xSocks -s $SERVER -k $PASSWORD
+    xTproxy -s $SERVER -k $PASSWORD
+    xForwarder -l 0.0.0.0:5533 -d $DNS:53 -s $SERVER -k $PASSWORD
 }
 
 stop() {
     tproxy_stop
     acl del
-    xsocks --signal stop
-    xtproxy --signal stop
-    xforwarder --signal stop
+    xSocks --signal stop
+    xTproxy --signal stop
+    xForwarder --signal stop
 }
 
 shutdown() {
     tproxy_stop
     acl del
-    xsocks --signal quit
-    xtproxy --signal quit
-    xforwarder --signal quit
+    xSocks --signal quit
+    xTproxy --signal quit
+    xForwarder --signal quit
 }
 
 tproxy_start() {

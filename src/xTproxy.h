@@ -7,7 +7,7 @@
 #include "packet.h"
 
 
-#define XTPROXY_VER          "xtproxy/" XSOCKS_VERSION
+#define XTPROXY_VER          "xTproxy/" XSOCKS_VERSION
 
 
 struct client_context {

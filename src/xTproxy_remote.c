@@ -9,7 +9,7 @@
 #include "logger.h"
 #include "crypto.h"
 #include "socks.h"
-#include "xforwarder.h"
+#include "xTproxy.h"
 
 
 static void remote_send_cb(uv_write_t *req, int status);
@@ -25,9 +25,11 @@ remote_timer_expire(uv_timer_t *handle) {
         struct sockaddr peername;
         int namelen = sizeof peername;
         uv_tcp_getpeername(&client->handle.tcp, &peername, &namelen);
-        char addr[INET6_ADDRSTRLEN + 1];
-        int port = ip_name(&peername, addr, sizeof addr);
-        logger_log(LOG_WARNING, "%s:%d <-> %s connection timeout", addr, port, dest_addr_buf);
+        char addr1[INET6_ADDRSTRLEN + 1];
+        char addr2[INET6_ADDRSTRLEN + 1];
+        int p1 = ip_name(&peername, addr1, sizeof addr2);
+        int p2 = ip_name(&client->target_addr, addr2, sizeof(addr2));
+        logger_log(LOG_WARNING, "%s:%d <-> %s:%d timeout", addr1, p1, addr2, p2);
     }
     close_client(client);
     close_remote(remote);
@@ -111,9 +113,7 @@ remote_connect_cb(uv_connect_t *req, int status) {
 
     } else {
         if (status != UV_ECANCELED) {
-            char addrbuf[INET6_ADDRSTRLEN + 1];
-            ip_name(&server_addr, addrbuf, sizeof(addrbuf));
-            logger_log(LOG_ERR, "connect to %s failed: %s", addrbuf, uv_strerror(status));
+            logger_log(LOG_ERR, "connect to server failed: %s", uv_strerror(status));
             close_client(client);
             close_remote(remote);
         }
@@ -144,11 +144,9 @@ request_to_server(struct remote_context *remote) {
     char buf[260] = {0};
     struct client_context *client = remote->client;
 
-    struct sockaddr *addr = &dest_addr;
-
     /*
      *
-     * xsocks request
+     * xSocks request
      * +------+----------+----------+
      * | ATYP | BND.ADDR | BND.PORT |
      * +------+----------+----------+
@@ -156,19 +154,18 @@ request_to_server(struct remote_context *remote) {
      * +------+----------+----------+
      *
      */
-    if (addr->sa_family == AF_INET) {
+    if (client->target_addr.sa_family == AF_INET) {
         size_t in_addr_len = sizeof(struct in_addr);
-        buflen = sizeof(struct xsocks_request) + in_addr_len + portlen;
+        buflen = sizeof(struct xSocks_request) + in_addr_len + portlen;
         buf[0] = ATYP_IPV4;
-        memcpy(buf + 1, &((struct sockaddr_in *)addr)->sin_addr, in_addr_len);
-        memcpy(buf + 1 + in_addr_len, &((struct sockaddr_in *)addr)->sin_port, portlen);
-
+        memcpy(buf + 1, &((struct sockaddr_in *)&(client->target_addr))->sin_addr, in_addr_len);
+        memcpy(buf + 1 + in_addr_len, &((struct sockaddr_in *)&(client->target_addr))->sin_port, portlen);
     } else {
         size_t in6_addr_len = sizeof(struct in6_addr);
-        buflen = sizeof(struct xsocks_request) + sizeof(struct in6_addr) + portlen;
+        buflen = sizeof(struct xSocks_request) + sizeof(struct in6_addr) + portlen;
         buf[0] = ATYP_IPV6;
-        memcpy(buf + 1, &((struct sockaddr_in6 *)addr)->sin6_addr, in6_addr_len);
-        memcpy(buf + 1 + in6_addr_len, &((struct sockaddr_in6 *)addr)->sin6_port, portlen);
+        memcpy(buf + 1, &((struct sockaddr_in6 *)&(client->target_addr))->sin6_addr, in6_addr_len);
+        memcpy(buf + 1 + in6_addr_len, &((struct sockaddr_in6 *)&(client->target_addr))->sin6_port, portlen);
     }
 
     int clen = buflen + PRIMITIVE_BYTES;
@@ -183,11 +180,9 @@ void
 connect_to_remote(struct remote_context *remote) {
     remote->stage = XSTAGE_CONNECT;
     remote->connect_req.data = remote;
-    int rc = uv_tcp_connect(&remote->connect_req, &remote->handle.tcp, &server_addr, remote_connect_cb);
+    int rc = uv_tcp_connect(&remote->connect_req, &remote->handle.tcp, remote->server_addr, remote_connect_cb);
     if (rc) {
-        char addrbuf[INET6_ADDRSTRLEN + 1];
-        ip_name(&server_addr, addrbuf, sizeof(addrbuf));
-        logger_log(LOG_ERR, "connect to %s error: %s", addrbuf, uv_strerror(rc));
+        logger_log(LOG_ERR, "connect to server error: %s", uv_strerror(rc));
         close_client(remote->client);
         close_remote(remote);
     }
@@ -203,7 +198,9 @@ remote_send_cb(uv_write_t *req, int status) {
         receive_from_client(client);
 
     } else {
-        logger_log(LOG_ERR, "forward to server failed: %s", uv_strerror(status));
+        if (verbose) {
+            logger_log(LOG_ERR, "send to server failed: %s", uv_strerror(status));
+        }
     }
 }
 
@@ -236,8 +233,10 @@ remote_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
         }
 
     } else if (nread < 0){
-        if (nread != UV_EOF) {
-            logger_log(LOG_ERR, "receive from %s failed: %s", dest_addr_buf, uv_strerror(nread));
+        if (nread != UV_EOF && verbose) {
+            char addrbuf[INET6_ADDRSTRLEN + 1];
+            int port = ip_name(&client->target_addr, addrbuf, sizeof(addrbuf));
+            logger_log(LOG_ERR, "receive from %s:%d failed: %s", addrbuf, port, uv_strerror(nread));
         }
         close_client(client);
         close_remote(remote);

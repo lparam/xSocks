@@ -11,7 +11,7 @@
 #include "crypto.h"
 #include "common.h"
 #include "socks.h"
-#include "xsocks.h"
+#include "xSocks.h"
 
 
 static void client_alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
@@ -169,7 +169,7 @@ request_start(struct client_context *client, char *req_buf) {
 
     /*
      *
-     * xsocks request
+     * xSocks request
      * +------+----------+----------+
      * | ATYP | BND.ADDR | BND.PORT |
      * +------+----------+----------+
@@ -179,7 +179,7 @@ request_start(struct client_context *client, char *req_buf) {
      */
     if (req->atyp == ATYP_IPV4) {
         size_t in_addr_len = sizeof(struct in_addr);
-        buflen = sizeof(struct xsocks_request) + in_addr_len + portlen;
+        buflen = sizeof(struct xSocks_request) + in_addr_len + portlen;
         buf[0] = ATYP_IPV4;
         memcpy(buf + 1, req->addr, in_addr_len);
         memcpy(buf + 1 + in_addr_len, req->addr + in_addr_len, portlen);
@@ -195,7 +195,7 @@ request_start(struct client_context *client, char *req_buf) {
             request_ack(client, S5_REP_ADDRESS_TYPE_NOT_SUPPORTED);
             return;
         }
-        buflen = sizeof(struct xsocks_request) + 1 + namelen + portlen;
+        buflen = sizeof(struct xSocks_request) + 1 + namelen + portlen;
         buf[0] = ATYP_HOST;
         memcpy(buf + 1, req->addr, 1 + namelen);
         memcpy(buf + 1 + 1 + namelen, req->addr + 1 + namelen, portlen);
@@ -206,7 +206,7 @@ request_start(struct client_context *client, char *req_buf) {
 
     } else if (req->atyp == ATYP_IPV6) {
         size_t in6_addr_len = sizeof(struct in6_addr);
-        buflen = sizeof(struct xsocks_request) + in6_addr_len + portlen;
+        buflen = sizeof(struct xSocks_request) + in6_addr_len + portlen;
         buf[0] = ATYP_IPV6;
         memcpy(buf + 1, req->addr, in6_addr_len);
         memcpy(buf + 1 + in6_addr_len, req->addr + in6_addr_len, portlen);

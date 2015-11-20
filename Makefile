@@ -1,7 +1,7 @@
 MAJOR = 0
 MINOR = 4
-PATCH = 1
-NAME = xsocks
+PATCH = 2
+NAME = xSocks
 
 ifdef O
 ifeq ("$(origin O)", "command line")
@@ -106,11 +106,11 @@ endif
 
 LDFLAGS += $(LIBS)
 
-XSOCKSD=$(OBJTREE)/xsocksd
-XSOCKS=$(OBJTREE)/xsocks
-XTPROXY=$(OBJTREE)/xtproxy
-XFORWARDER=$(OBJTREE)/xforwarder
-XTUNNEL=$(OBJTREE)/xtunnel
+XSOCKSD=$(OBJTREE)/xSocksd
+XSOCKS=$(OBJTREE)/xSocks
+XTPROXY=$(OBJTREE)/xTproxy
+XFORWARDER=$(OBJTREE)/xForwarder
+XTUNNEL=$(OBJTREE)/xTunnel
 
 #########################################################################
 include $(SRCTREE)/config.mk
@@ -216,10 +216,10 @@ $(XSOCKSD): \
 	$(OBJTREE)/src/consumer.o \
 	$(OBJTREE)/src/cache.o \
 	$(OBJTREE)/src/packet.o \
-	$(OBJTREE)/src/xsocksd_udprelay.o \
-	$(OBJTREE)/src/xsocksd_client.o \
-	$(OBJTREE)/src/xsocksd_remote.o \
-	$(OBJTREE)/src/xsocksd.o
+	$(OBJTREE)/src/xSocksd_udprelay.o \
+	$(OBJTREE)/src/xSocksd_client.o \
+	$(OBJTREE)/src/xSocksd_remote.o \
+	$(OBJTREE)/src/xSocksd.o
 	$(LINK) $^ -o $@ $(LDFLAGS) $(OBJTREE)/3rd/c-ares/.libs/libcares.a
 else
 $(XSOCKSD).exe: \
@@ -231,10 +231,10 @@ $(XSOCKSD).exe: \
 	src/consumer.o \
 	src/cache.o \
 	src/packet.o \
-	src/xsocksd_udprelay.o \
-	src/xsocksd_client.o \
-	src/xsocksd_remote.o \
-	src/xsocksd.o
+	src/xSocksd_udprelay.o \
+	src/xSocksd_client.o \
+	src/xSocksd_remote.o \
+	src/xSocksd.o
 	$(LINK) $^ -o $@ 3rd/c-ares/.libs/libcares.a $(LDFLAGS)
 endif
 
@@ -249,10 +249,10 @@ XSOCKS_OBJS = \
 	$(OBJTREE)/src/consumer.o \
 	$(OBJTREE)/src/cache.o \
 	$(OBJTREE)/src/packet.o \
-	$(OBJTREE)/src/xsocks_udprelay.o \
-	$(OBJTREE)/src/xsocks_client.o \
-	$(OBJTREE)/src/xsocks_remote.o \
-	$(OBJTREE)/src/xsocks.o
+	$(OBJTREE)/src/xSocks_udprelay.o \
+	$(OBJTREE)/src/xSocks_client.o \
+	$(OBJTREE)/src/xSocks_remote.o \
+	$(OBJTREE)/src/xSocks.o
 
 ifdef ANDROID
 	XSOCKS_OBJS += $(OBJTREE)/src/android.o
@@ -272,10 +272,10 @@ $(XSOCKS).exe: \
 	src/consumer.o \
 	src/cache.o \
 	src/packet.o \
-	src/xsocks_udprelay.o \
-	src/xsocks_client.o \
-	src/xsocks_remote.o \
-	src/xsocks.o
+	src/xSocks_udprelay.o \
+	src/xSocks_client.o \
+	src/xSocks_remote.o \
+	src/xSocks.o
 	$(LINK) $^ -o $@ $(LDFLAGS)
 endif
 
@@ -288,10 +288,10 @@ $(XTPROXY): \
 	$(OBJTREE)/src/daemon.o \
 	$(OBJTREE)/src/signal.o \
 	$(OBJTREE)/src/consumer.o \
-	$(OBJTREE)/src/xtproxy_udprelay.o \
-	$(OBJTREE)/src/xtproxy_client.o \
-	$(OBJTREE)/src/xtproxy_remote.o \
-	$(OBJTREE)/src/xtproxy.o
+	$(OBJTREE)/src/xTproxy_udprelay.o \
+	$(OBJTREE)/src/xTproxy_client.o \
+	$(OBJTREE)/src/xTproxy_remote.o \
+	$(OBJTREE)/src/xTproxy.o
 	$(LINK) $^ -o $@ $(LDFLAGS)
 
 ifndef MINGW32
@@ -304,10 +304,10 @@ $(XFORWARDER): \
 	$(OBJTREE)/src/signal.o \
 	$(OBJTREE)/src/consumer.o \
 	$(OBJTREE)/src/cache.o \
-	$(OBJTREE)/src/xforwarder_udprelay.o \
-	$(OBJTREE)/src/xforwarder_client.o \
-	$(OBJTREE)/src/xforwarder_remote.o \
-	$(OBJTREE)/src/xforwarder.o
+	$(OBJTREE)/src/xForwarder_udprelay.o \
+	$(OBJTREE)/src/xForwarder_client.o \
+	$(OBJTREE)/src/xForwarder_remote.o \
+	$(OBJTREE)/src/xForwarder.o
 	$(LINK) $^ -o $@ $(LDFLAGS)
 else
 $(XFORWARDER).exe: \
@@ -317,10 +317,10 @@ $(XFORWARDER).exe: \
 	src/packet.o \
 	src/consumer.o \
 	src/cache.o \
-	src/xforwarder_udprelay.o \
-	src/xforwarder_client.o \
-	src/xforwarder_remote.o \
-	src/xforwarder.o
+	src/xForwarder_udprelay.o \
+	src/xForwarder_client.o \
+	src/xForwarder_remote.o \
+	src/xForwarder.o
 	$(LINK) $^ -o $@ $(LDFLAGS)
 endif
 
@@ -333,9 +333,9 @@ $(XTUNNEL): \
 	$(OBJTREE)/src/daemon.o \
 	$(OBJTREE)/src/signal.o \
 	$(OBJTREE)/src/consumer.o \
-	$(OBJTREE)/src/xtunnel_source.o \
-	$(OBJTREE)/src/xtunnel_target.o \
-	$(OBJTREE)/src/xtunnel.o
+	$(OBJTREE)/src/xTunnel_source.o \
+	$(OBJTREE)/src/xTunnel_target.o \
+	$(OBJTREE)/src/xTunnel.o
 	$(LINK) $^ -o $@ $(LDFLAGS)
 else
 $(XTUNNEL).exe: \
@@ -344,9 +344,9 @@ $(XTUNNEL).exe: \
 	src/crypto.o \
 	src/packet.o \
 	src/consumer.o \
-	src/xtunnel_source.o \
-	src/xtunnel_target.o \
-	src/xtunnel.o
+	src/xTunnel_source.o \
+	src/xTunnel_target.o \
+	src/xTunnel.o
 	$(LINK) $^ -o $(OBJTREE)/$@ $(LDFLAGS)
 endif
 

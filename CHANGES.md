@@ -1,3 +1,8 @@
+v0.4.2 (2015-10-20)
+-----------
+* Change: Rename program name
+
+
 v0.4.1 (2015-10-18)
 -----------
 * Hotfix: Openwrt build script
@@ -51,7 +56,7 @@ v0.2.2 (2015-9-01)
 
 v0.2.1 (2015-6-09)
 -----------
-* Change: Build native xsocks with WinDDK for windows
+* Change: Build native xSocks with WinDDK for windows
 * Feature: Support mingw-w64
 
 

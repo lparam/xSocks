@@ -128,7 +128,7 @@ target_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
 
         /*
          *
-         * xsocks UDP Response
+         * xSocks UDP Response
          * +------+----------+----------+----------+
          * | ATYP | DST.ADDR | DST.PORT |   DATA   |
          * +------+----------+----------+----------+
@@ -222,7 +222,7 @@ resolve_target(struct target_context *target, char *host, uint16_t port) {
 
 /*
  *
- * xsocks UDP Request
+ * xSocks UDP Request
  * +------+----------+----------+----------+
  * | ATYP | DST.ADDR | DST.PORT |   DATA   |
  * +------+----------+----------+----------+
@@ -243,7 +243,7 @@ client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
 
         char host[256] = {0};
         struct sockaddr dest_addr;
-        struct xsocks_request *request = (struct xsocks_request *)m;
+        struct xSocks_request *request = (struct xSocks_request *)m;
         int addrlen = parse_target_address(request, &dest_addr, host);
         if (addrlen < 1) {
             logger_log(LOG_ERR, "unsupported address type: 0x%02x", request->atyp);
@@ -290,7 +290,7 @@ client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
 
         /*
          *
-         * xsocks UDP Request
+         * xSocks UDP Request
          * +------+----------+----------+----------+
          * | ATYP | DST.ADDR | DST.PORT |   DATA   |
          * +------+----------+----------+----------+

@@ -1,12 +1,12 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=xsocks
-PKG_VERSION:=0.4.1
+PKG_NAME:=xSocks
+PKG_VERSION:=0.4.2
 PKG_RELEASE=
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/lparam/xsocks.git
+PKG_SOURCE_URL:=https://github.com/lparam/xSocks.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_VERSION:=v$(PKG_VERSION)
 
@@ -18,27 +18,27 @@ PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/xsocks/Default
+define Package/xSocks/Default
   SECTION:=net
   CATEGORY:=Network
   TITLE:=A secure and fast proxy for protect your network traffic
-  URL:=https://github.com/lparam/xsocks
+  URL:=https://github.com/lparam/xSocks
 endef
 
-define Package/xsocks
-  $(call Package/xsocks/Default)
+define Package/xSocks
+  $(call Package/xSocks/Default)
   DEPENDS:=+libpthread +librt
 endef
 
-define Package/xsocks/description
-  xsocks is a secure and fast proxy for protect your network traffic
+define Package/xSocks/description
+  xSocks is a secure and fast proxy for protect your network traffic
 endef
 
-define Package/xsocks/install
+define Package/xSocks/install
 	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/xsocks.init $(1)/etc/init.d/xsocks
+	$(INSTALL_BIN) ./files/xSocks.init $(1)/etc/init.d/xSocks
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/x{socks,tproxy,forwarder,tunnel} $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/x{Socks,Tproxy,Forwarder,Tunnel} $(1)/usr/bin
 endef
 
-$(eval $(call BuildPackage,xsocks))
+$(eval $(call BuildPackage,xSocks))

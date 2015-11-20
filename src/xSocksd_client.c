@@ -7,7 +7,7 @@
 #include "util.h"
 #include "logger.h"
 #include "crypto.h"
-#include "xsocksd.h"
+#include "xSocksd.h"
 
 
 static void client_alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
@@ -48,15 +48,15 @@ static int
 verify_request(uint8_t *buf, ssize_t buflen) {
     size_t len;
     static uint16_t portlen = 2;
-    struct xsocks_request *req = (struct xsocks_request *)buf;
+    struct xSocks_request *req = (struct xSocks_request *)buf;
 
     if (req->atyp == ATYP_IPV4) {
-        len = sizeof(struct xsocks_request) + sizeof(struct in_addr) + portlen;
+        len = sizeof(struct xSocks_request) + sizeof(struct in_addr) + portlen;
     } else if (req->atyp == ATYP_HOST) {
         uint8_t namelen = *(uint8_t *)(req->addr);
-        len = sizeof(struct xsocks_request) + 1 + namelen + portlen;
+        len = sizeof(struct xSocks_request) + 1 + namelen + portlen;
     } else if (req->atyp == ATYP_IPV6) {
-        len = sizeof(struct xsocks_request) + sizeof(struct in6_addr) + portlen;
+        len = sizeof(struct xSocks_request) + sizeof(struct in6_addr) + portlen;
     } else {
         logger_log(LOG_ERR, "unsupported address type: 0x%02x", req->atyp);
         len = 0;
@@ -66,7 +66,7 @@ verify_request(uint8_t *buf, ssize_t buflen) {
 }
 
 static int
-analyse_request_addr(struct xsocks_request *req, struct sockaddr *dest, char *dest_buf, char *host) {
+analyse_request_addr(struct xSocks_request *req, struct sockaddr *dest, char *dest_buf, char *host) {
     union {
         struct sockaddr addr;
         struct sockaddr_in addr4;
@@ -145,7 +145,7 @@ request_start(struct client_context *client) {
     char host[256] = {0};
     uint16_t *portbuf; // avoid Wstrict-aliasing
     struct remote_context *remote = client->remote;
-    struct xsocks_request *request = (struct xsocks_request *)client->packet.buf;
+    struct xSocks_request *request = (struct xSocks_request *)client->packet.buf;
 
     int addrlen = analyse_request_addr(request, &remote->addr, client->target_addr, host);
     if (addrlen < 1) {

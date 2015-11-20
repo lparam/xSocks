@@ -11,14 +11,14 @@
 #include "crypto.h"
 #include "daemon.h"
 #include "udprelay.h"
-#include "xtproxy.h"
+#include "xTproxy.h"
 
 
 static int daemon_mode = 1;
 static int concurrency = 0;
 static char *local_addrbuf = "0.0.0.0:1070";
 static char *server_addrbuf;
-static char *pidfile = "/var/run/xsocks/xtproxy.pid";
+static char *pidfile = "/var/run/xSocks/xTproxy.pid";
 static char *password = NULL;
 static char *xsignal;
 static struct signal_ctx signals[3];
@@ -42,7 +42,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xtproxy Version: %s Maintained by lparam\n", XTPROXY_VER);
+    printf("xTproxy Version: %s Maintained by lparam\n", XTPROXY_VER);
     printf("Usage: %s <-l local> <-s server> <-k password> [-p pidfile] [-c concurrency] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -h, --help\t\t : this help\n"
@@ -50,9 +50,9 @@ print_usage(const char *prog) {
          "  -s <server address>\t : server address:port\n"
          "  -k <password>\t\t : password of server\n"
          "  -c <concurrency>\t : worker threads\n"
-         "  -p <pidfile>\t\t : pid file path (default: /var/run/xsocks/xtproxy.pid)\n"
+         "  -p <pidfile>\t\t : pid file path (default: /var/run/xSocks/xTproxy.pid)\n"
          "  -t <timeout>\t\t : connection timeout in senconds\n"
-         "  [--signal <signal>]\t : send signal to xtproxy: quit, stop\n"
+         "  [--signal <signal>]\t : send signal to xTproxy: quit, stop\n"
          "  -n\t\t\t : non daemon mode\n"
          "  -v, --version\t\t : show version\n"
          "  -V \t\t\t : verbose mode\n");
@@ -67,7 +67,7 @@ parse_opts(int argc, char *argv[]) {
     while ((opt = getopt_long(argc, argv, _optString, _lopts, &longindex)) != -1) {
         switch (opt) {
         case 'v':
-            printf("xtproxy version: %s \n", XTPROXY_VER);
+            printf("xTproxy version: %s \n", XTPROXY_VER);
             exit(0);
             break;
         case 'h':
@@ -221,7 +221,7 @@ main(int argc, char *argv[]) {
             return 1;
         }
         if (already_running(pidfile)) {
-            logger_stderr("xtproxy already running.");
+            logger_stderr("xTproxy already running.");
             return 1;
         }
     }

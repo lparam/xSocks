@@ -12,7 +12,7 @@
 #include "resolver.h"
 #include "daemon.h"
 #include "udprelay.h"
-#include "xsocksd.h"
+#include "xSocksd.h"
 
 
 #define MAX_DNS_NUM 4
@@ -23,7 +23,7 @@ static int nameserver_num;
 static int udprelay;
 static char *nameservers[MAX_DNS_NUM + 1];
 static char *local_addrbuf = "0.0.0.0:1073";
-static char *pidfile = "/var/run/xsocks/xsocksd.pid";
+static char *pidfile = "/var/run/xSocks/xSocksd.pid";
 static char *password;
 static char *xsignal;
 #ifndef _WIN32
@@ -48,7 +48,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xsocksd Version: %s Maintained by lparam\n", XSOCKSD_VER);
+    printf("xSocksd Version: %s Maintained by lparam\n", XSOCKSD_VER);
     printf("Usage: %s [-l bind] <-k password> [-p pidfile] [-c concurrency] [-t timeout] [-s signal] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -k <password>\t\t : password of server\n"
@@ -58,8 +58,8 @@ print_usage(const char *prog) {
          "  [-u]\t\t\t : enable udp relay\n"
 #ifndef _WIN32
          "  [-c <concurrency>]\t : worker threads\n"
-         "  [-p <pidfile>]\t : pid file path (default: /var/run/xsocks/xsocksd.pid)\n"
-         "  [--signal <signal>]\t : send signal to xsocksd: quit, stop\n"
+         "  [-p <pidfile>]\t : pid file path (default: /var/run/xSocks/xSocksd.pid)\n"
+         "  [--signal <signal>]\t : send signal to xSocksd: quit, stop\n"
          "  [-n]\t\t\t : non daemon mode\n"
 #endif
          "  [-h, --help]\t\t : this help\n"
@@ -76,7 +76,7 @@ parse_opts(int argc, char *argv[]) {
     while ((opt = getopt_long(argc, argv, _optString, _lopts, &longindex)) != -1) {
         switch (opt) {
         case 'v':
-            printf("xsocksd version: %s \n", XSOCKSD_VER);
+            printf("xSocksd version: %s \n", XSOCKSD_VER);
             exit(0);
             break;
         case 'h':
@@ -250,7 +250,7 @@ main(int argc, char *argv[]) {
             return 1;
         }
         if (already_running(pidfile)) {
-            logger_stderr("xsocksd already running.");
+            logger_stderr("xSocksd already running.");
             return 1;
         }
     }
