@@ -1,4 +1,9 @@
-v0.4.3 (2015-10-18)
+v0.4.4 (2015-10-21)
+-----------
+* Fix: Openwrt start script
+
+
+v0.4.3 (2015-10-21)
 -----------
 * Hotfix: Android build script
 
