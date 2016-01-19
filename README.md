@@ -48,6 +48,7 @@ make mingw32 HOST=x86_64-w64-mingw32
 # Install Tomatoware on your router from: https://github.com/lancethepants/tomatoware
 git clone https://github.com/lparam/xSocks.git
 make STATIC=1
+```
 
 Usage
 ------------
