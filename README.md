@@ -14,7 +14,7 @@ Features
 ------------
 * Transparent Proxy for all tcp traffic and udp packet
 * Multithreading
-* Cross-platform, including PC (Linux, [Windows](https://github.com/lparam/xSocks-windows)), Mobile ([Android](https://github.com/lparam/xSocks-android) and Router (OpenWRT)([Tomatoware](https://github.com/lancethepants/tomatoware),[Tomato](http://tomato.groov.pl/?page_id=164))
+* Cross-platform, including PC (Linux, [Windows](https://github.com/lparam/xSocks-windows)), Mobile ([Android](https://github.com/lparam/xSocks-android) and Router (OpenWRT)([Tomatoware](https://github.com/lancethepants/tomatoware))
 
 BUILD
 ------------
