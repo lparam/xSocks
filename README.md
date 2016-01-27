@@ -14,7 +14,7 @@ Features
 ------------
 * Transparent Proxy for all tcp traffic and udp packet
 * Multithreading
-* Cross-platform, including PC (Linux, [Windows](https://github.com/lparam/xSocks-windows)), Mobile ([Android](https://github.com/lparam/xSocks-android)) and Router (OpenWRT)
+* Cross-platform, including PC (Linux, [Windows](https://github.com/lparam/xSocks-windows)), Mobile ([Android](https://github.com/lparam/xSocks-android) and Router (OpenWRT,[Tomatoware](https://github.com/lancethepants/tomatoware))
 
 BUILD
 ------------
@@ -40,6 +40,14 @@ make package/xSocks/openwrt/compile
 make mingw32 HOST=i686-w64-mingw32
 # win64
 make mingw32 HOST=x86_64-w64-mingw32
+```
+
+### Tomatoware
+
+```bash
+# Install Tomatoware on your router from: https://github.com/lancethepants/tomatoware
+git clone https://github.com/lparam/xSocks.git
+make STATIC=1
 ```
 
 Usage
