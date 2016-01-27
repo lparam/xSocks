@@ -106,6 +106,10 @@ endif
 
 LDFLAGS += $(LIBS)
 
+ifdef STATIC
+LDFLAGS += -Wl,-static -static -static-libgcc -s
+endif
+
 XSOCKSD=$(OBJTREE)/xSocksd
 XSOCKS=$(OBJTREE)/xSocks
 XTPROXY=$(OBJTREE)/xTproxy
