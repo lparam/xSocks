@@ -127,7 +127,7 @@ all: libuv libsodium c-ares $(XSOCKSD) $(XSOCKS) $(XTPROXY) $(XFORWARDER) $(XTUN
 endif
 
 android: libuv libsodium $(XSOCKS) $(XFORWARDER)
-mingw32: libuv libsodium c-ares $(XSOCKS).exe $(XTPROXY).exe $(XFORWARDER).exe $(XTUNNEL).exe
+mingw32: libuv libsodium c-ares $(XSOCKSD).exe $(XSOCKS).exe $(XFORWARDER).exe $(XTUNNEL).exe
 
 3rd/libuv/autogen.sh:
 	$(Q)git submodule update --init
@@ -351,7 +351,7 @@ $(XTUNNEL).exe: \
 	src/xTunnel_source.o \
 	src/xTunnel_target.o \
 	src/xTunnel.o
-	$(LINK) $^ -o $(OBJTREE)/$@ $(LDFLAGS)
+	$(LINK) $^ -o $@ $(LDFLAGS)
 endif
 
 clean:
