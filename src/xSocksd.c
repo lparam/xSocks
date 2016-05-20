@@ -237,12 +237,12 @@ main(int argc, char *argv[]) {
     if (xsignal) {
         return signal_process(xsignal, pidfile);
     }
+#endif
 
     if (!password) {
         print_usage(argv[0]);
         return 1;
     }
-#endif
 
 #ifndef _WIN32
     if (daemon_mode) {
