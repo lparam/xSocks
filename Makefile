@@ -135,6 +135,7 @@ mingw32: libuv libsodium c-ares $(XSOCKSD).exe $(XSOCKS).exe $(XFORWARDER).exe $
 $(OBJTREE)/3rd/libuv/Makefile: | 3rd/libuv/autogen.sh
 	$(Q)mkdir -p $(OBJTREE)/3rd/libuv
 	$(Q)cd 3rd/libuv && ./autogen.sh
+	$(Q)cd 3rd/libuv &&autoreconf --force -ivf
 	$(Q)cd $(OBJTREE)/3rd/libuv && $(SRCTREE)/3rd/libuv/configure --host=$(HOST) LDFLAGS= && $(MAKE)
 
 libuv: $(OBJTREE)/3rd/libuv/Makefile
