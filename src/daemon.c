@@ -56,7 +56,7 @@ already_running(const char *pidfile) {
 		exit(1);
     }
 
-	return(0);
+	return 0;
 }
 
 void
