@@ -1,8 +1,7 @@
 #ifndef PACKET_H
 #define PACKET_H
 
-#include <stdint.h>
-#include <stdlib.h>
+#include "uv.h"
 
 
 #define HEADER_BYTES    2
@@ -19,9 +18,11 @@ struct packet {
     int read;
     uint16_t offset;
     uint16_t size;
+    uint16_t max;
     uint8_t buf[MAX_PACKET_SIZE];
 };
 
+void packet_alloc(struct packet *packet, uv_buf_t *buf);
 int packet_filter(struct packet *packet, const char *buf, ssize_t buflen);
 void packet_reset(struct packet *packet);
 

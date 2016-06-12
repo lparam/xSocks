@@ -119,81 +119,89 @@ forward_to_client(struct client_context *client, uint8_t *data, ssize_t len) {
 
 static void
 server_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
-    if (nread > 0) {
-        struct client_context *client = handle->data;
-        reset_timer(client);
+    if (nread <= 0) {
+        return;
+    }
 
-        int mlen = nread - PRIMITIVE_BYTES;
-        uint8_t *m = (uint8_t *)buf->base;
-        int rc = crypto_decrypt(m, (uint8_t *)buf->base, nread);
-        if (rc) {
-            logger_log(LOG_ERR, "invalid udp packet");
-            goto err;
-        }
+    struct client_context *client = handle->data;
+    reset_timer(client);
 
-        /*
-         *
-         * xSocks UDP Response
-         * +------+----------+----------+----------+
-         * | ATYP | DST.ADDR | DST.PORT |   DATA   |
-         * +------+----------+----------+----------+
-         * |  1   | Variable |    2     | Variable |
-         * +------+----------+----------+----------+
-         *
-         */
-        union {
-            struct sockaddr addr;
-            struct sockaddr_in addr4;
-            struct sockaddr_in6 addr6;
-        } dest_addr;
-        if (m[0] == ATYP_IPV4) {
-            dest_addr.addr4.sin_family = AF_INET;
-            memcpy(&dest_addr.addr4.sin_addr, m + 1, 4);
-            memcpy(&dest_addr.addr4.sin_port, m + 5, 2);
+    int mlen = nread - PRIMITIVE_BYTES;
+    uint8_t *m = (uint8_t *)buf->base;
 
-        } else {
-            dest_addr.addr6.sin6_family = AF_INET6;
-            memcpy(&dest_addr.addr6.sin6_addr, m + 1, 16);
-            memcpy(&dest_addr.addr6.sin6_port, m + 17, 2);
-        }
-
-        int addrlen = m[0] == ATYP_IPV4 ? IPV4_HEADER_LEN : IPV6_HEADER_LEN;
-        memmove(m, m + addrlen, mlen - addrlen);
-        mlen -= addrlen;
-
-        if (!client->bind_server) {
-            uv_os_sock_t sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-            if (sock < 0) {
-                logger_stderr("socket error: %s\n", strerror(errno));
-            }
-            int yes = 1;
-            if (setsockopt(sock, SOL_IP, IP_TRANSPARENT, &yes, sizeof(int))) {
-                logger_stderr("setsockop IP_TRANSPARENT error: %s)", strerror(errno));
-            }
-
-            client->dest_handle = malloc(sizeof(uv_udp_t));
-            uv_udp_init(handle->loop, client->dest_handle);
-            rc = uv_udp_open(client->dest_handle, sock);
-            if (rc) {
-                logger_stderr("udp open error: %s", uv_strerror(rc));
-            }
-            rc = uv_udp_bind(client->dest_handle, &dest_addr.addr, UV_UDP_REUSEADDR);
-            if (rc) {
-                logger_stderr("udp server bind error: %s", uv_strerror(rc));
-            }
-
-            client->bind_server = 1;
-        }
-
-        forward_to_client(client, m , mlen);
-
-    } else {
+    int valid = mlen > 0;
+    if (!valid) {
         goto err;
     }
+
+    int rc = crypto_decrypt(m, (uint8_t *)buf->base, nread);
+    if (rc) {
+        goto err;
+    }
+
+    /*
+     *
+     * xSocks UDP Response
+     * +------+----------+----------+----------+
+     * | ATYP | DST.ADDR | DST.PORT |   DATA   |
+     * +------+----------+----------+----------+
+     * |  1   | Variable |    2     | Variable |
+     * +------+----------+----------+----------+
+     *
+     */
+    union {
+        struct sockaddr addr;
+        struct sockaddr_in addr4;
+        struct sockaddr_in6 addr6;
+    } dest_addr;
+    if (m[0] == ATYP_IPV4) {
+        dest_addr.addr4.sin_family = AF_INET;
+        memcpy(&dest_addr.addr4.sin_addr, m + 1, 4);
+        memcpy(&dest_addr.addr4.sin_port, m + 5, 2);
+
+    } else {
+        dest_addr.addr6.sin6_family = AF_INET6;
+        memcpy(&dest_addr.addr6.sin6_addr, m + 1, 16);
+        memcpy(&dest_addr.addr6.sin6_port, m + 17, 2);
+    }
+
+    int addrlen = m[0] == ATYP_IPV4 ? IPV4_HEADER_LEN : IPV6_HEADER_LEN;
+    memmove(m, m + addrlen, mlen - addrlen);
+    mlen -= addrlen;
+
+    if (!client->bind_server) {
+        uv_os_sock_t sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+        if (sock < 0) {
+            logger_stderr("socket error: %s\n", strerror(errno));
+        }
+        int yes = 1;
+        if (setsockopt(sock, SOL_IP, IP_TRANSPARENT, &yes, sizeof(int))) {
+            logger_stderr("setsockop IP_TRANSPARENT error: %s)", strerror(errno));
+        }
+
+        client->dest_handle = malloc(sizeof(uv_udp_t));
+        uv_udp_init(handle->loop, client->dest_handle);
+        rc = uv_udp_open(client->dest_handle, sock);
+        if (rc) {
+            logger_stderr("udp open error: %s", uv_strerror(rc));
+        }
+        rc = uv_udp_bind(client->dest_handle, &dest_addr.addr, UV_UDP_REUSEADDR);
+        if (rc) {
+            logger_stderr("udp server bind error: %s", uv_strerror(rc));
+        }
+
+        client->bind_server = 1;
+    }
+
+    forward_to_client(client, m , mlen);
 
     return;
 
 err:
+    logger_log(LOG_ERR, "invalid udp packet");
+    if (verbose) {
+        dump_hex(buf->base, nread, "invalid udp packet");
+    }
     free(buf->base);
 }
 

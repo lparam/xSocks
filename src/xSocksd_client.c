@@ -20,6 +20,8 @@ new_client() {
     struct client_context *client = malloc(sizeof(*client));
     memset(client, 0, sizeof(*client));
     client->stage = XSTAGE_REQUEST;
+    client->packet.max = MAX_PACKET_SIZE - HEADER_BYTES;
+    packet_reset(&client->packet);
     return client;
 }
 
@@ -226,6 +228,8 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
         int mlen = packet->size - PRIMITIVE_BYTES;
         uint8_t *c = packet->buf, *m = packet->buf;
 
+        assert(mlen > 0 && mlen <= MAX_PACKET_SIZE - PRIMITIVE_BYTES);
+
         int err = crypto_decrypt(m, c, clen);
         if (err) {
             goto error;
@@ -266,6 +270,9 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 
 error:
     logger_log(LOG_ERR, "invalid tcp packet");
+    if (verbose) {
+        dump_hex(buf->base, nread, "invalid tcp Packet");
+    }
     close_client(client);
     close_remote(remote);
 }

@@ -232,102 +232,110 @@ resolve_target(struct target_context *target, char *host, uint16_t port) {
  */
 static void
 client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
-    if (nread > 0) {
-        int mlen = nread - PRIMITIVE_BYTES;
-        uint8_t *m = (uint8_t *)buf->base;
-        int rc = crypto_decrypt(m, (uint8_t *)buf->base, nread);
-        if (rc) {
-            logger_log(LOG_ERR, "invalid udp packet");
-            goto err;
-        }
-
-        char host[256] = {0};
-        struct sockaddr dest_addr;
-        struct xSocks_request *request = (struct xSocks_request *)m;
-        int addrlen = parse_target_address(request, &dest_addr, host);
-        if (addrlen < 1) {
-            logger_log(LOG_ERR, "unsupported address type: 0x%02x", request->atyp);
-            goto err;
-        }
-
-        uint16_t port = (*(uint16_t *)(m + 1 + addrlen - 2));
-
-        char key[KEY_BYTES + 1] = {0};
-        crypto_generickey((uint8_t *)key, sizeof(key) -1, (uint8_t*)addr, sizeof(*addr), NULL, 0);
-
-        struct target_context *target = NULL;
-        uv_mutex_lock(&mutex);
-        cache_lookup(cache, key, (void *)&target);
-        uv_mutex_unlock(&mutex);
-        if (target == NULL) {
-            if (verbose) {
-                cache_log(request->atyp, addr, &dest_addr, host, port, 0);
-            }
-
-            target = new_target();
-            target->client_addr = *addr;
-            target->server_handle = handle;
-            memcpy(target->key, key, sizeof(key));
-
-            uv_timer_init(handle->loop, target->timer);
-
-            uv_udp_init(handle->loop, &target->target_handle);
-            target->target_handle.data = target;
-            rc = uv_udp_recv_start(&target->target_handle, target_alloc_cb, target_recv_cb);
-            if (rc) {
-                logger_stderr("listen udp target error: %s", uv_strerror(rc));
-            }
-
-            uv_mutex_lock(&mutex);
-            cache_insert(cache, target->key, (void *)target);
-            uv_mutex_unlock(&mutex);
-        } else {
-            if (verbose) {
-                cache_log(request->atyp, addr, &dest_addr, host, port, 1);
-            }
-        }
-        reset_timer(target);
-
-        /*
-         *
-         * xSocks UDP Request
-         * +------+----------+----------+----------+
-         * | ATYP | DST.ADDR | DST.PORT |   DATA   |
-         * +------+----------+----------+----------+
-         * |  1   | Variable |    2     | Variable |
-         * +------+----------+----------+----------+
-         *
-         */
-        uint8_t atyp = request->atyp;
-        mlen -= 1 + addrlen;
-        memmove(m, m + 1 + addrlen, mlen);
-
-        switch (atyp) {
-
-        case ATYP_IPV4:
-        case ATYP_IPV6:
-            target->header_len = dest_addr.sa_family == AF_INET ? IPV4_HEADER_LEN : IPV6_HEADER_LEN;
-            target->dest_addr = dest_addr;
-            forward_to_target(target, m, mlen);
-            break;
-
-        case ATYP_HOST:
-            target->buf = m;
-            target->buflen = mlen;
-            resolve_target(target, host, port);
-            break;
-
-        default:
-            break;
-        }
-
+    if (nread <= 0) {
         return;
+    }
 
-    } else {
+    uint8_t *m = (uint8_t *)buf->base;
+    int mlen = nread - PRIMITIVE_BYTES;
+
+    int valid = mlen > 0;
+    if (!valid) {
         goto err;
     }
 
+    int rc = crypto_decrypt(m, (uint8_t *)buf->base, nread);
+    if (rc) {
+        goto err;
+    }
+
+    char host[256] = {0};
+    struct sockaddr dest_addr;
+    struct xSocks_request *request = (struct xSocks_request *)m;
+    int addrlen = parse_target_address(request, &dest_addr, host);
+    if (addrlen < 1) {
+        logger_log(LOG_ERR, "unsupported address type: 0x%02x", request->atyp);
+        goto err;
+    }
+
+    uint16_t port = (*(uint16_t *)(m + 1 + addrlen - 2));
+
+    char key[KEY_BYTES + 1] = {0};
+    crypto_generickey((uint8_t *)key, sizeof(key) -1, (uint8_t*)addr, sizeof(*addr), NULL, 0);
+
+    struct target_context *target = NULL;
+    uv_mutex_lock(&mutex);
+    cache_lookup(cache, key, (void *)&target);
+    uv_mutex_unlock(&mutex);
+    if (target == NULL) {
+        if (verbose) {
+            cache_log(request->atyp, addr, &dest_addr, host, port, 0);
+        }
+
+        target = new_target();
+        target->client_addr = *addr;
+        target->server_handle = handle;
+        memcpy(target->key, key, sizeof(key));
+
+        uv_timer_init(handle->loop, target->timer);
+
+        uv_udp_init(handle->loop, &target->target_handle);
+        target->target_handle.data = target;
+        rc = uv_udp_recv_start(&target->target_handle, target_alloc_cb, target_recv_cb);
+        if (rc) {
+            logger_stderr("listen udp target error: %s", uv_strerror(rc));
+        }
+
+        uv_mutex_lock(&mutex);
+        cache_insert(cache, target->key, (void *)target);
+        uv_mutex_unlock(&mutex);
+    } else {
+        if (verbose) {
+            cache_log(request->atyp, addr, &dest_addr, host, port, 1);
+        }
+    }
+    reset_timer(target);
+
+    /*
+     *
+     * xSocks UDP Request
+     * +------+----------+----------+----------+
+     * | ATYP | DST.ADDR | DST.PORT |   DATA   |
+     * +------+----------+----------+----------+
+     * |  1   | Variable |    2     | Variable |
+     * +------+----------+----------+----------+
+     *
+     */
+    uint8_t atyp = request->atyp;
+    mlen -= 1 + addrlen;
+    memmove(m, m + 1 + addrlen, mlen);
+
+    switch (atyp) {
+
+    case ATYP_IPV4:
+    case ATYP_IPV6:
+        target->header_len = dest_addr.sa_family == AF_INET ? IPV4_HEADER_LEN : IPV6_HEADER_LEN;
+        target->dest_addr = dest_addr;
+        forward_to_target(target, m, mlen);
+        break;
+
+    case ATYP_HOST:
+        target->buf = m;
+        target->buflen = mlen;
+        resolve_target(target, host, port);
+        break;
+
+    default:
+        break;
+    }
+
+    return;
+
 err:
+    logger_log(LOG_ERR, "invalid udp packet");
+    if (verbose) {
+        dump_hex(buf->base, nread, "invalid udp packet");
+    }
     free(buf->base);
 }
 

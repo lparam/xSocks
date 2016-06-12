@@ -24,6 +24,7 @@ struct client_context {
     char key[KEY_BYTES + 1];
 };
 
+extern int verbose;
 extern uint16_t idle_timeout;
 static int addrlen = IPV4_HEADER_LEN;
 
@@ -123,30 +124,38 @@ forward_to_client(struct client_context *client, uint8_t *data, ssize_t len) {
  */
 static void
 server_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
-    if (nread > 0) {
-        struct client_context *client = handle->data;
-        reset_timer(client);
+    if (nread <= 0) {
+        return;
+    }
 
-        int mlen = nread - PRIMITIVE_BYTES;
-        uint8_t *m = (uint8_t *)buf->base;
-        int rc = crypto_decrypt(m, (uint8_t *)buf->base, nread);
-        if (rc) {
-            logger_log(LOG_ERR, "invalid packet");
-            goto err;
-        }
+    struct client_context *client = handle->data;
+    reset_timer(client);
 
-        memmove(m, m + addrlen, mlen - addrlen);
-        mlen -= addrlen;
+    int mlen = nread - PRIMITIVE_BYTES;
+    uint8_t *m = (uint8_t *)buf->base;
 
-        forward_to_client(client, m , mlen);
-
-    } else {
+    int valid = mlen > 0;
+    if (!valid) {
         goto err;
     }
+
+    int rc = crypto_decrypt(m, (uint8_t *)buf->base, nread);
+    if (rc) {
+        goto err;
+    }
+
+    memmove(m, m + addrlen, mlen - addrlen);
+    mlen -= addrlen;
+
+    forward_to_client(client, m , mlen);
 
     return;
 
 err:
+    logger_log(LOG_ERR, "invalid udp packet");
+    if (verbose) {
+        dump_hex(buf->base, nread, "invalid udp packet");
+    }
     free(buf->base);
 }
 
