@@ -80,7 +80,7 @@ crypto_encrypt(uint8_t *c, const uint8_t *m, const uint32_t mlen) {
 int
 crypto_decrypt(uint8_t *m, const uint8_t *c, const uint32_t clen) {
     uint8_t nonce[CSSNB];
-    if (CSSNB + COB >= clen) {
+    if (clen <= CSSNB + COB) {
         return -1;
     }
     memcpy(nonce, c, CSSNB);
