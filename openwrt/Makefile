@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=xSocks
-PKG_VERSION:=0.4.4
+PKG_VERSION:=0.4.5
 PKG_RELEASE=
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
