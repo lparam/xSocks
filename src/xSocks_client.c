@@ -5,7 +5,9 @@
 
 #include "uv.h"
 
+#if !defined(_WIN32)
 #include "acl.h"
+#endif
 #include "util.h"
 #include "logger.h"
 #include "crypto.h"
@@ -231,6 +233,7 @@ request_start(struct client_context *client, char *req_buf) {
     struct sockaddr addr;
     memset(&addr, 0, sizeof addr);
 
+#if !defined(_WIN32)
     if ((acl && (req->atyp == 1 || req->atyp == 4) && acl_contains_ip(host))) {
         if (verbose) {
             logger_log(LOG_WARNING, "bypass %s", client->target_addr);
@@ -243,6 +246,7 @@ request_start(struct client_context *client, char *req_buf) {
             return;
         }
     }
+#endif
 
     client->buflen = buflen;
     memcpy(req_buf, buf, buflen);

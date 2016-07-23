@@ -14,6 +14,8 @@ struct target_context *
 new_target() {
     struct target_context *target = malloc(sizeof(*target));
     memset(target, 0, sizeof(*target));
+    target->packet.max = MAX_PACKET_SIZE - HEADER_BYTES;
+    packet_reset(&target->packet);
     return target;
 }
 
@@ -79,10 +81,13 @@ target_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
             struct packet *packet = &target->packet;
             int rc = packet_filter(packet, buf->base, nread);
             if (rc == PACKET_COMPLETED) {
-                uint8_t *m = packet->buf;
+                int clen = packet->size;
                 int mlen = packet->size - PRIMITIVE_BYTES;
+                uint8_t *c = packet->buf, *m = packet->buf;
 
-                int err = crypto_decrypt(m, packet->buf, packet->size);
+                assert(mlen > 0 && mlen <= MAX_PACKET_SIZE - PRIMITIVE_BYTES);
+
+                int err = crypto_decrypt(m, c, clen);
                 if (err) {
                     goto error;
                 }
@@ -112,6 +117,9 @@ target_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 
 error:
     logger_log(LOG_ERR, "invalid packet");
+    if (verbose) {
+        dump_hex(buf->base, nread, "invalid Packet");
+    }
     close_source(source);
     close_target(target);
 }

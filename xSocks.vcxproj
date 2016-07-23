@@ -18,10 +18,10 @@
     <ClCompile Include="src\logger.c" />
     <ClCompile Include="src\packet.c" />
     <ClCompile Include="src\util.c" />
-    <ClCompile Include="src\xsocks.c" />
-    <ClCompile Include="src\xsocks_client.c" />
-    <ClCompile Include="src\xsocks_remote.c" />
-    <ClCompile Include="src\xsocks_udprelay.c" />
+    <ClCompile Include="src\xSocks.c" />
+    <ClCompile Include="src\xSocks_client.c" />
+    <ClCompile Include="src\xSocks_remote.c" />
+    <ClCompile Include="src\xSocks_udprelay.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\cache.h" />
@@ -34,7 +34,7 @@
     <ClInclude Include="src\socks.h" />
     <ClInclude Include="src\uthash.h" />
     <ClInclude Include="src\util.h" />
-    <ClInclude Include="src\xsocks.h" />
+    <ClInclude Include="src\xSocks.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5DFFAC1E-81E2-4F03-AFBE-2984BF91300D}</ProjectGuid>

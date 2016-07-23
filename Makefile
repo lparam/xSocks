@@ -1,6 +1,6 @@
 MAJOR = 0
 MINOR = 4
-PATCH = 4
+PATCH = 5
 NAME = xSocks
 
 ifdef O
@@ -127,7 +127,7 @@ all: libuv libsodium c-ares $(XSOCKSD) $(XSOCKS) $(XTPROXY) $(XFORWARDER) $(XTUN
 endif
 
 android: libuv libsodium $(XSOCKS) $(XFORWARDER)
-mingw32: libuv libsodium c-ares $(XSOCKS).exe $(XTPROXY).exe $(XFORWARDER).exe $(XTUNNEL).exe
+mingw32: libuv libsodium c-ares $(XSOCKSD).exe $(XSOCKS).exe $(XFORWARDER).exe $(XTUNNEL).exe
 
 3rd/libuv/autogen.sh:
 	$(Q)git submodule update --init
@@ -135,6 +135,7 @@ mingw32: libuv libsodium c-ares $(XSOCKS).exe $(XTPROXY).exe $(XFORWARDER).exe $
 $(OBJTREE)/3rd/libuv/Makefile: | 3rd/libuv/autogen.sh
 	$(Q)mkdir -p $(OBJTREE)/3rd/libuv
 	$(Q)cd 3rd/libuv && ./autogen.sh
+	$(Q)cd 3rd/libuv &&autoreconf --force -ivf
 	$(Q)cd $(OBJTREE)/3rd/libuv && $(SRCTREE)/3rd/libuv/configure --host=$(HOST) LDFLAGS= && $(MAKE)
 
 libuv: $(OBJTREE)/3rd/libuv/Makefile
@@ -351,7 +352,7 @@ $(XTUNNEL).exe: \
 	src/xTunnel_source.o \
 	src/xTunnel_target.o \
 	src/xTunnel.o
-	$(LINK) $^ -o $(OBJTREE)/$@ $(LDFLAGS)
+	$(LINK) $^ -o $@ $(LDFLAGS)
 endif
 
 clean:

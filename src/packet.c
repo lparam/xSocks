@@ -5,39 +5,55 @@
 #include "packet.h"
 
 
+void
+packet_alloc(struct packet *packet, uv_buf_t *buf) {
+    if (packet->size) {
+        buf->base = (char *) packet->buf + packet->offset;
+        buf->len = packet->size - packet->offset;
+    } else {
+        buf->base = (char *) packet->buf + (packet->read ? 1 : 0);
+        buf->len = packet->read ? 1 : HEADER_BYTES;
+    }
+}
+
 int
 packet_filter(struct packet *packet, const char *buf, ssize_t buflen) {
-    int rc;
+    int rc = PACKET_INVALID;
 
     if (packet->size == 0) {
-        assert(buflen <= HEADER_BYTES);
+        if (packet->read == 0) {
+            if (buflen == HEADER_BYTES) {
+                packet->size = read_size((uint8_t *) buf);
+                if (packet->size > PRIMITIVE_BYTES && packet->size <= packet->max) {
+                    rc = PACKET_UNCOMPLETE;
+                } else {
+                    rc = PACKET_INVALID;
+                }
 
-        if (packet->read == 1) {
-            packet->size = read_size((uint8_t *)packet->buf);
-            rc = PACKET_UNCOMPLETE;
-
-        } else {
-            if (buflen == 1) {
+            } else {
+                assert(buflen == 1);
                 packet->read = 1;
                 rc = PACKET_UNCOMPLETE;
+            }
 
-            } else if (buflen == HEADER_BYTES) {
-                packet->size = read_size((uint8_t *)buf);
-                rc = packet->size > 0 ? PACKET_UNCOMPLETE : PACKET_INVALID;
-
+        } else {
+            assert(packet->read == 1);
+            packet->size = read_size((uint8_t *) packet->buf);
+            if (packet->size > PRIMITIVE_BYTES && packet->size <= packet->max) {
+                rc = PACKET_UNCOMPLETE;
             } else {
                 rc = PACKET_INVALID;
             }
         }
 
     } else {
-        if (buflen + packet->offset < packet->size) {
-            packet->offset += buflen;
-            rc = PACKET_UNCOMPLETE;
+        if (buflen + packet->offset == packet->size) {
+            rc = PACKET_COMPLETED;
 
         } else {
-            assert(buflen + packet->offset == packet->size);
-            rc = PACKET_COMPLETED;
+            assert(buflen + packet->offset < packet->size);
+            packet->offset += buflen;
+            rc = PACKET_UNCOMPLETE;
         }
     }
 
@@ -46,5 +62,8 @@ packet_filter(struct packet *packet, const char *buf, ssize_t buflen) {
 
 void
 packet_reset(struct packet *packet) {
-    memset(packet, 0, sizeof(*packet));
+    packet->read = 0;
+    packet->offset = 0;
+    packet->size = 0;
+    memset(packet->buf, 0, packet->max);
 }

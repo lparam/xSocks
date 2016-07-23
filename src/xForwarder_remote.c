@@ -220,10 +220,13 @@ remote_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
         struct packet *packet = &remote->packet;
         int rc = packet_filter(packet, buf->base, nread);
         if (rc == PACKET_COMPLETED) {
-            uint8_t *m = packet->buf;
+            int clen = packet->size;
             int mlen = packet->size - PRIMITIVE_BYTES;
+            uint8_t *c = packet->buf, *m = packet->buf;
 
-            int err = crypto_decrypt(m, packet->buf, packet->size);
+            assert(mlen > 0 && mlen <= MAX_PACKET_SIZE - PRIMITIVE_BYTES);
+
+            int err = crypto_decrypt(m, c, clen);
             if (err) {
                 goto error;
             }
@@ -247,6 +250,9 @@ remote_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 
 error:
     logger_log(LOG_ERR, "invalid tcp packet");
+    if (verbose) {
+        dump_hex(buf->base, nread, "invalid tcp Packet");
+    }
     close_client(client);
     close_remote(remote);
 }

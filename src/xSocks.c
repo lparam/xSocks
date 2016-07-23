@@ -9,7 +9,9 @@
 
 #include "uv.h"
 
+#if !defined(_WIN32)
 #include "acl.h"
+#endif
 #include "util.h"
 #include "logger.h"
 #include "crypto.h"
@@ -43,7 +45,9 @@ static const struct option _lopts[] = {
 #ifdef ANDROID
     { "vpn",     no_argument,         NULL,  0  },
 #endif
+#if !defined(_WIN32)
     { "acl",     required_argument,   NULL,  0  },
+#endif
     { "signal",  required_argument,   NULL,  0  },
     { "version", no_argument,         NULL, 'v' },
     { "help",    no_argument,         NULL, 'h' },
@@ -67,8 +71,8 @@ print_usage(const char *prog) {
 #ifndef _WIN32
          "  [-c <concurrency>]\t : worker threads\n"
          "  [-p <pidfile>]\t : pid file path (default: /var/run/xSocks/xSocks.pid)\n"
-#endif
          "  [--acl <aclfile>]\t : ACL (Access Control List) file path\n"
+#endif
 #ifdef ANDROID
          "  [--vpn]\t : protect vpn socket\n"
 #endif
@@ -239,9 +243,11 @@ init(void) {
         idle_timeout = 60;
     }
 
+#if !defined(_WIN32)
     if (acl_file != NULL) {
         acl = !acl_init(acl_file);
     }
+#endif
 }
 
 int
@@ -365,9 +371,11 @@ main(int argc, char *argv[]) {
     }
 #endif
 
+#if !defined(_WIN32)
     if (acl_file != NULL) {
         acl_free();
     }
+#endif
     logger_exit();
 
     return 0;

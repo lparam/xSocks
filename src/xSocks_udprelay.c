@@ -11,6 +11,7 @@
 
 
 #define KEY_BYTES 32U
+#define SOCKS5_UDP_RSV_FRAG_BYTES 3
 
 struct client_context {
     struct sockaddr addr;
@@ -85,11 +86,11 @@ client_alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
 static void
 server_alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
 #if defined(_MSC_VER)
-	buf->base = (char*)malloc(suggested_size) + 3;
+	buf->base = (char*)malloc(suggested_size) + SOCKS5_UDP_RSV_FRAG_BYTES;
 #else
-	buf->base = malloc(suggested_size) + 3;
+	buf->base = malloc(suggested_size) + SOCKS5_UDP_RSV_FRAG_BYTES;
 #endif
-    buf->len = suggested_size - 3;
+    buf->len = suggested_size - SOCKS5_UDP_RSV_FRAG_BYTES;
 }
 
 static void
@@ -101,7 +102,6 @@ client_send_cb(uv_udp_send_t *req, int status) {
     free(buf->base);
     free(req);
 }
-
 
 /*
  *
@@ -135,40 +135,47 @@ forward_to_client(struct client_context *client, uint8_t *data, ssize_t len) {
  */
 static void
 server_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
-    if (nread > 0) {
-        struct client_context *client = handle->data;
-        reset_timer(client);
-
-        int mlen = nread - PRIMITIVE_BYTES;
-        uint8_t *m = (uint8_t *)buf->base;
-        int rc = crypto_decrypt(m, (uint8_t *)buf->base, nread);
-        if (rc) {
-            logger_log(LOG_ERR, "invalid packet");
-            dump_hex(buf->base, nread, "server recv");
-            goto err;
-        }
-
-        m -= 3;
-        mlen += 3;
-        memcpy(m, "\x0\x0\x0", 3); // RSV + FRAG
-
-        if (verbose) {
-            char dst[INET6_ADDRSTRLEN + 1] = {0};
-            uint16_t dst_port = 0;
-            dst_port = ip_name(&client->addr, dst, sizeof dst);
-            logger_log(LOG_INFO, "%s <- %s:%d", dst, dst_port, client->target_addr);
-        }
-
-        forward_to_client(client, m , mlen);
-
+    if (nread <= 0) {
         return;
+    }
 
-    } else {
+    struct client_context *client = handle->data;
+    reset_timer(client);
+
+    int mlen = nread - PRIMITIVE_BYTES;
+    uint8_t *m = (uint8_t *)buf->base;
+
+    int valid = mlen > 0;
+    if (!valid) {
         goto err;
     }
 
+    int rc = crypto_decrypt(m, (uint8_t *)buf->base, nread);
+    if (rc) {
+        goto err;
+    }
+
+    m -= SOCKS5_UDP_RSV_FRAG_BYTES;
+    mlen += SOCKS5_UDP_RSV_FRAG_BYTES;
+    memcpy(m, "\x0\x0\x0", SOCKS5_UDP_RSV_FRAG_BYTES); // RSV + FRAG
+
+    if (verbose) {
+        char dst[INET6_ADDRSTRLEN + 1] = {0};
+        uint16_t dst_port = 0;
+        dst_port = ip_name(&client->addr, dst, sizeof dst);
+        logger_log(LOG_INFO, "%s <- %s:%d", dst, dst_port, client->target_addr);
+    }
+
+    forward_to_client(client, m , mlen);
+
+    return;
+
 err:
-    free(buf->base - 3);
+    logger_log(LOG_ERR, "invalid udp packet");
+    if (verbose) {
+        dump_hex(buf->base, nread, "invalid udp packet");
+    }
+    free(buf->base - SOCKS5_UDP_RSV_FRAG_BYTES);
 }
 
 static void
@@ -227,7 +234,7 @@ client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
             goto err;
         }
 
-        struct xSocks_request *request = (struct xSocks_request *)(buf->base + 3);
+        struct xSocks_request *request = (struct xSocks_request *)(buf->base + SOCKS5_UDP_RSV_FRAG_BYTES);
         struct sockaddr dest_addr;
         char host[256] = {0};
         int addrlen = parse_target_address(request, &dest_addr, host);
@@ -273,9 +280,9 @@ client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
             sprintf(client->target_addr, "%s:%d", dst, dst_port);
         }
 
-        int clen = nread - 3 + PRIMITIVE_BYTES;
+        int clen = nread - SOCKS5_UDP_RSV_FRAG_BYTES + PRIMITIVE_BYTES;
         uint8_t *c = (uint8_t *)buf->base - PRIMITIVE_BYTES;
-        int rc = crypto_encrypt(c, (uint8_t*)buf->base + 3, nread - 3);
+        int rc = crypto_encrypt(c, (uint8_t*)buf->base + SOCKS5_UDP_RSV_FRAG_BYTES, nread - SOCKS5_UDP_RSV_FRAG_BYTES);
         if (!rc) {
             reset_timer(client);
             forward_to_server(server->server_addr, client, c, clen);
