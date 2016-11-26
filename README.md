@@ -18,6 +18,12 @@ Features
 
 BUILD
 ------------
+### Ubuntu
+
+```bash
+sudo apt-get -y install libtool automake
+make && sudo make install
+```
 
 ### Linux
 
