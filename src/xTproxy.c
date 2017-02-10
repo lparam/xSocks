@@ -43,19 +43,19 @@ static const struct option _lopts[] = {
 static void
 print_usage(const char *prog) {
     printf("xTproxy Version: %s Maintained by lparam\n", XTPROXY_VER);
-    printf("Usage: %s <-l local> <-s server> <-k password> [-p pidfile] [-c concurrency] [-nhvV]\n\n", prog);
+    printf("Usage: %s [-l local] <-s server> <-k password> [-p pidfile] [-c concurrency] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -h, --help\t\t : this help\n"
-         "  -l <bind address>\t : bind address:port (default: 0.0.0.0:1070)\n"
+         "  [-l <bind address>]\t : bind address:port (default: 0.0.0.0:1070)\n"
          "  -s <server address>\t : server address:port\n"
          "  -k <password>\t\t : password of server\n"
-         "  -c <concurrency>\t : worker threads\n"
-         "  -p <pidfile>\t\t : pid file path (default: /var/run/xSocks/xTproxy.pid)\n"
-         "  -t <timeout>\t\t : connection timeout in senconds\n"
+         "  [-c <concurrency>]\t : worker threads\n"
+         "  [-p <pidfile>]\t\t : pid file path (default: /var/run/xSocks/xTproxy.pid)\n"
+         "  [-t <timeout>]\t\t : connection timeout in senconds\n"
          "  [--signal <signal>]\t : send signal to xTproxy: quit, stop\n"
-         "  -n\t\t\t : non daemon mode\n"
-         "  -v, --version\t\t : show version\n"
-         "  -V \t\t\t : verbose mode\n");
+         "  [-n]\t\t\t : non daemon mode\n"
+         "  [-v, --version]\t\t : show version\n"
+         "  [-V] \t\t\t : verbose mode\n");
 
     exit(1);
 }
