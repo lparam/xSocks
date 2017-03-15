@@ -99,7 +99,7 @@ LIBANCILLARY = $(OBJTREE)/3rd/libancillary/libancillary.a
 LIBS += $(OBJTREE)/3rd/libuv/.libs/libuv.a $(OBJTREE)/3rd/libsodium/src/libsodium/.libs/libsodium.a
 
 ifdef MINGW32
-LIBS += -lws2_32 -lpsapi -liphlpapi -luserenv
+LIBS += -lws2_32 -lpsapi -liphlpapi -luserenv -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic
 else
 LIBS += -pthread -ldl
 endif
