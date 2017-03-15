@@ -108,9 +108,8 @@ forward_client_request_packet(struct remote_context *remote, struct client_conte
     int clen = client->buflen + PRIMITIVE_BYTES;
     uint8_t *c = client->buf + HEADER_BYTES;
     int rc = crypto_encrypt(c, client->buf + OVERHEAD_BYTES, client->buflen);
-    if (!rc) {
-        forward_to_remote(remote, c, clen);
-    }
+    assert(rc == 0);
+    forward_to_remote(remote, c, clen);
 }
 
 static void

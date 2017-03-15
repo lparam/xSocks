@@ -76,7 +76,8 @@ verify_request(char *buf, ssize_t buflen) {
 void
 receive_from_client(struct client_context *client) {
     client->handle.stream.data = client;
-    uv_read_start(&client->handle.stream, client_alloc_cb, client_recv_cb);
+    int rc = uv_read_start(&client->handle.stream, client_alloc_cb, client_recv_cb);
+    assert(rc == 0);
 }
 
 void
@@ -202,9 +203,9 @@ request_start(struct client_context *client, char *req_buf) {
         memcpy(buf + 1, req->addr, 1 + namelen);
         memcpy(buf + 1 + 1 + namelen, req->addr + 1 + namelen, portlen);
 
-        memcpy(client->target_addr, req->addr + 1, namelen);
+        memcpy(host, req->addr + 1, namelen);
         uint16_t port = read_size((uint8_t*)(req->addr + 1 + namelen));
-        sprintf(client->target_addr, "%s:%u", client->target_addr, port);
+        sprintf(client->target_addr, "%s:%u", host, port);
 
     } else if (req->atyp == ATYP_IPV6) {
         size_t in6_addr_len = sizeof(struct in6_addr);
@@ -390,6 +391,8 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
             break;
 
         default:
+            logger_log(LOG_ERR, "unknonw state");
+            exit(1);
             break;
         }
 
