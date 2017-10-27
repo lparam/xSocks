@@ -73,11 +73,17 @@ verify_request(char *buf, ssize_t buflen) {
     return len == buflen;
 }
 
-void
+int
 receive_from_client(struct client_context *client) {
     client->handle.stream.data = client;
     int rc = uv_read_start(&client->handle.stream, client_alloc_cb, client_recv_cb);
-    assert(rc == 0);
+    if (rc != 0) {
+        char addrbuf[INET6_ADDRSTRLEN + 1] = {0};
+        uint16_t port = ip_name(&client->addr, addrbuf, sizeof addrbuf);
+        logger_log(LOG_ERR, "receive from %s:%d failed (%s)", addrbuf, port,
+                   uv_strerror(rc));
+    }
+    return rc;
 }
 
 void

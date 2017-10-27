@@ -124,8 +124,10 @@ remote_connect_cb(uv_connect_t *req, int status) {
 
         remote->stage = XSTAGE_FORWARD;
         reset_timer(remote);
-        receive_from_client(client);
-        receive_from_remote(remote);
+        int rc = receive_from_client(client);
+        if (rc == 0) {
+            receive_from_remote(remote);
+        }
 
     } else {
         if (status != UV_ECANCELED) {
@@ -135,11 +137,11 @@ remote_connect_cb(uv_connect_t *req, int status) {
     }
 }
 
-void
+int
 receive_from_remote(struct remote_context *remote) {
     packet_reset(&remote->packet);
     remote->handle.stream.data = remote;
-    uv_read_start(&remote->handle.stream, remote_alloc_cb, remote_recv_cb);
+    return uv_read_start(&remote->handle.stream, remote_alloc_cb, remote_recv_cb);
 }
 
 void
