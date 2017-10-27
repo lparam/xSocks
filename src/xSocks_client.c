@@ -77,7 +77,7 @@ int
 receive_from_client(struct client_context *client) {
     client->handle.stream.data = client;
     int rc = uv_read_start(&client->handle.stream, client_alloc_cb, client_recv_cb);
-    if (rc != 0) {
+    if (rc != 0 && verbose) {
         char addrbuf[INET6_ADDRSTRLEN + 1] = {0};
         uint16_t port = ip_name(&client->addr, addrbuf, sizeof addrbuf);
         logger_log(LOG_ERR, "receive from %s:%d failed (%s)", addrbuf, port,
@@ -143,6 +143,9 @@ request_ack(struct client_context *client, enum s5_rep rep) {
         }
 
     } else {
+        if (verbose) {
+            logger_log(LOG_WARNING, "request ack: %d", rep);
+        }
         client->stage = XSTAGE_TERMINATE;
     }
 
