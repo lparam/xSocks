@@ -76,14 +76,7 @@ verify_request(char *buf, ssize_t buflen) {
 int
 receive_from_client(struct client_context *client) {
     client->handle.stream.data = client;
-    int rc = uv_read_start(&client->handle.stream, client_alloc_cb, client_recv_cb);
-    if (rc != 0 && verbose) {
-        char addrbuf[INET6_ADDRSTRLEN + 1] = {0};
-        uint16_t port = ip_name(&client->addr, addrbuf, sizeof addrbuf);
-        logger_log(LOG_ERR, "receive from %s:%d failed (%s)", addrbuf, port,
-                   uv_strerror(rc));
-    }
-    return rc;
+    return uv_read_start(&client->handle.stream, client_alloc_cb, client_recv_cb);
 }
 
 void
@@ -143,9 +136,6 @@ request_ack(struct client_context *client, enum s5_rep rep) {
         }
 
     } else {
-        if (verbose) {
-            logger_log(LOG_WARNING, "request ack: %d", rep);
-        }
         client->stage = XSTAGE_TERMINATE;
     }
 
@@ -399,8 +389,13 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 
             break;
 
+        case XSTAGE_TERMINATE:
+            close_client(client);
+            close_remote(remote);
+            break;
+
         default:
-            logger_log(LOG_ERR, "unknonw state");
+            logger_log(LOG_ERR, "unknonw stage: %d", client->stage);
             exit(1);
             break;
         }
