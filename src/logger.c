@@ -29,7 +29,7 @@ static uv_tty_t _ttyerr;
 #endif
 
 static const char *levels[] = {
-    "EMERG", "ALERT", "CRIT", "ERR", "WARN", "NOTICE", "INFO", "DEBUG"
+    "EMERG", "ALERT", "CRIT", "ERRO", "WARN", "NOTICE", "INFO", "DEBG"
 };
 
 #ifndef ANDROID
@@ -96,7 +96,7 @@ logger_log(uint32_t level, const char *msg, ...) {
         char timestr[20];
         strftime(timestr, 20, "%Y/%m/%d %H:%M:%S", loctime);
         char m[300] = { 0 };
-        sprintf(m, "%s%s [%s]\033[0m: %s\n", colors[level], timestr, levels[level], tmp);
+        sprintf(m, "%s %s%s\033[0m %s\n", timestr, colors[level], levels[level], tmp);
 #ifdef _WIN32
         log2tty(&_tty, m);
 #else
