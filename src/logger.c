@@ -18,6 +18,7 @@
 #define LOG_MESSAGE_SIZE 256
 
 static int _syslog = 0;
+static int _level = LOG_INFO;
 
 #ifdef _WIN32
 static uv_tty_t _tty;
@@ -69,6 +70,10 @@ log2std(FILE *file, const char *msg) {
 void
 logger_log(uint32_t level, const char *msg, ...) {
 	char tmp[LOG_MESSAGE_SIZE];
+
+    if (level > _level) {
+        return;
+    }
 
 	va_list ap;
 	va_start(ap, msg);
@@ -131,7 +136,7 @@ logger_stderr(const char *msg, ...) {
 }
 
 int
-logger_init(int syslog) {
+logger_init(int syslog, int level) {
 #ifndef _WIN32
     _syslog = syslog;
 #else
@@ -140,6 +145,7 @@ logger_init(int syslog) {
     uv_tty_set_mode(&_tty, UV_TTY_MODE_NORMAL);
     uv_tty_set_mode(&_ttyerr, UV_TTY_MODE_NORMAL);
 #endif
+    _level = level;
 
     return 0;
 }

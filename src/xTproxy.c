@@ -16,6 +16,7 @@
 
 static int daemon_mode = 1;
 static int concurrency = 0;
+static int log_level = LOG_INFO;
 static char *local_addrbuf = "0.0.0.0:1070";
 static char *server_addrbuf;
 static char *pidfile = "/var/run/xSocks/xTproxy.pid";
@@ -182,7 +183,7 @@ setup_signal(uv_loop_t *loop, uv_signal_cb cb, void *data) {
 
 static void
 init(void) {
-    logger_init(daemon_mode);
+    logger_init(daemon_mode, log_level);
 
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
