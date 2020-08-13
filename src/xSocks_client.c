@@ -100,7 +100,7 @@ forward_to_client(struct client_context *client, uint8_t *buf, int buflen) {
  */
 void
 request_ack(struct client_context *client, enum s5_rep rep) {
-    struct sockaddr addr;
+    struct sockaddr_storage addr;
     int addrlen = sizeof(addr);
     int buflen;
     uint8_t *buf;
@@ -112,7 +112,7 @@ request_ack(struct client_context *client, enum s5_rep rep) {
 
     memset(&addr, 0, sizeof(addr));
     uv_tcp_getsockname(&client->handle.tcp, (struct sockaddr *) &addr, &addrlen);
-    if (addr.sa_family == AF_INET6) {
+    if (((struct sockaddr *)&addr)->sa_family == AF_INET6) {
         buf[3] = 0x04;  /* ATYP - IPv6. */
         const struct sockaddr_in6 *addr6 = (const struct sockaddr_in6 *)&addr;
         memcpy(buf + 4, &addr6->sin6_addr, 16); /* BND.ADDR */
@@ -341,73 +341,77 @@ static void
 client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
     struct client_context *client = stream->data;
     struct remote_context *remote = client->remote;
-    int clen;
 
-    if (nread > 0) {
-        uv_read_stop(&client->handle.stream);
-
-        switch (client->stage) {
-        case XSTAGE_HANDSHAKE:
-            if (verify_methods(buf->base, nread)) {
-                handshake(client);
-            } else {
-                logger_log(LOG_ERR, "invalid method packet");
-                close_client(client);
-            }
-
-            break;
-
-        case XSTAGE_REQUEST:
-            if (verify_request(buf->base, nread)) {
-                request_start(client, buf->base);
-            } else {
-                logger_log(LOG_ERR, "invalid request packet");
-                close_client(client);
-            }
-
-            break;
-
-        case XSTAGE_FORWARD:
-            reset_timer(remote);
-
-            if (remote->direct) {
-                forward_to_remote(remote, (uint8_t*)buf->base, nread);
-
-            } else {
-                clen = nread + PRIMITIVE_BYTES;
-                uint8_t *c = client->buf + HEADER_BYTES;
-                int rc = crypto_encrypt(c, (uint8_t*)buf->base, nread);
-                if (rc) {
-                    logger_log(LOG_ERR, "encrypt failed");
-                    close_client(client);
-                    close_remote(remote);
-
-                } else {
-                    forward_to_remote(remote, c, clen);
-                }
-            }
-
-            break;
-
-        case XSTAGE_TERMINATE:
-            close_client(client);
-            close_remote(remote);
-            break;
-
-        default:
-            logger_log(LOG_ERR, "unknonw stage: %d", client->stage);
-            exit(1);
-            break;
-        }
-
-    } else if (nread < 0) {
-        if (nread != UV_EOF) {
+    if (nread <= 0) {
+        if (nread < 0) {
             char addrbuf[INET6_ADDRSTRLEN + 1] = {0};
             uint16_t port = ip_name(&client->addr, addrbuf, sizeof addrbuf);
-            logger_log(LOG_ERR, "receive from %s:%d failed: %s", addrbuf, port, uv_strerror(nread));
+            if (nread != UV_EOF) {
+                logger_log(LOG_ERR, "receive from %s:%d failed: %s",
+                           addrbuf, port, uv_strerror(nread));
+            } else {
+                logger_log(LOG_DEBUG, "%s:%d close", addrbuf, port);
+            }
+            close_client(client);
+            close_remote(remote);
         }
+        return;
+    }
+
+    uv_read_stop(&client->handle.stream);
+
+    switch (client->stage) {
+    case XSTAGE_HANDSHAKE:
+        if (verify_methods(buf->base, nread)) {
+            handshake(client);
+        } else {
+            logger_log(LOG_ERR, "invalid method packet");
+            close_client(client);
+        }
+
+        break;
+
+    case XSTAGE_REQUEST:
+        if (verify_request(buf->base, nread)) {
+            request_start(client, buf->base);
+        } else {
+            logger_log(LOG_ERR, "invalid request packet");
+            close_client(client);
+        }
+
+        break;
+
+    case XSTAGE_FORWARD:
+        reset_timer(remote);
+
+        if (remote->direct) {
+            forward_to_remote(remote, (uint8_t*)buf->base, nread);
+
+        } else {
+            int clen = nread + PRIMITIVE_BYTES;
+            uint8_t *c = client->buf + HEADER_BYTES;
+            int rc = crypto_encrypt(c, (uint8_t*)buf->base, nread);
+            if (rc) {
+                logger_log(LOG_ERR, "encrypt failed");
+                close_client(client);
+                close_remote(remote);
+
+            } else {
+                forward_to_remote(remote, c, clen);
+            }
+        }
+
+        break;
+
+    case XSTAGE_TERMINATE:
         close_client(client);
         close_remote(remote);
+        break;
+
+    default:
+        logger_log(LOG_ERR, "unknonw stage: %d", client->stage);
+        exit(1);
+        break;
     }
 }
 

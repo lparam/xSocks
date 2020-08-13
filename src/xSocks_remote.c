@@ -33,6 +33,9 @@ remote_timer_expire(uv_timer_t *handle) {
         }
     }
 
+    if (client->stage == XSTAGE_TERMINATE) {
+        logger_log(LOG_ERR, "unexpcted client stage: %d", client->stage);
+    }
     assert(client->stage != XSTAGE_TERMINATE);
     request_ack(client, S5_REP_TTL_EXPIRED);
 }
@@ -195,42 +198,45 @@ remote_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
     remote = stream->data;
     client = remote->client;
 
-    if (nread > 0) {
-        reset_timer(remote);
-        if (remote->direct) {
-            uv_read_stop(&remote->handle.stream);
-            forward_to_client(client, (uint8_t*)buf->base, nread);
-
-        } else {
-            struct packet *packet = &remote->packet;
-            int rc = packet_filter(packet, buf->base, nread);
-            if (rc == PACKET_COMPLETED) {
-                int clen = packet->size;
-                int mlen = packet->size - PRIMITIVE_BYTES;
-                uint8_t *c = packet->buf, *m = packet->buf;
-
-                assert(mlen > 0 && mlen <= MAX_PACKET_SIZE - PRIMITIVE_BYTES);
-
-                int err = crypto_decrypt(m, c, clen);
-                if (err) {
-                    goto error;
-                }
-
-                uv_read_stop(&remote->handle.stream);
-                forward_to_client(client, m, mlen);
-
-            } else if (rc == PACKET_INVALID) {
-                goto error;
+    if (nread <= 0){
+        if (nread < 0) {
+            if (nread != UV_EOF) {
+                logger_log(LOG_ERR, "receive from server failed (%s)", uv_strerror(nread));
+            } else {
+                logger_log(LOG_DEBUG, "server close");
             }
+            goto destroy;
         }
-
-    } else if (nread < 0){
-        if (nread != UV_EOF) {
-            logger_log(LOG_ERR, "receive from %s failed: %s", client->target_addr, uv_strerror(nread));
-        }
-        goto destroy;
+        return;
     }
 
+    reset_timer(remote);
+    if (remote->direct) {
+        uv_read_stop(&remote->handle.stream);
+        forward_to_client(client, (uint8_t*)buf->base, nread);
+
+    } else {
+        struct packet *packet = &remote->packet;
+        int rc = packet_filter(packet, buf->base, nread);
+        if (rc == PACKET_COMPLETED) {
+            int clen = packet->size;
+            int mlen = packet->size - PRIMITIVE_BYTES;
+            uint8_t *c = packet->buf, *m = packet->buf;
+
+            assert(mlen > 0 && mlen <= MAX_PACKET_SIZE - PRIMITIVE_BYTES);
+
+            int err = crypto_decrypt(m, c, clen);
+            if (err) {
+                goto error;
+            }
+
+            uv_read_stop(&remote->handle.stream);
+            forward_to_client(client, m, mlen);
+
+        } else if (rc == PACKET_INVALID) {
+            goto error;
+        }
+    }
     return;
 
 error:
