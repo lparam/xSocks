@@ -39,6 +39,7 @@ tags
 
 /Debug
 /Release
+.vscode
 *.opensdf
 *.sdf
 *.suo
