@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "uv.h"
+
 #include "util.h"
 #include "logger.h"
 #include "common.h"
@@ -236,7 +237,7 @@ client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
 
         struct xSocks_request *request = (struct xSocks_request *)(buf->base + SOCKS5_UDP_RSV_FRAG_BYTES);
         struct sockaddr dest_addr;
-        char host[256] = {0};
+        char host[200] = {0};
         int addrlen = parse_target_address(request, &dest_addr, host);
         uint16_t port = (*(uint16_t *)(buf->base + 4 + addrlen - 2));
 
@@ -272,7 +273,7 @@ client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
         }
 
         if (request->atyp == ATYP_HOST) {
-            sprintf(client->target_addr, "%s:%d", host, ntohs(port));
+            sprintf(client->target_addr, "%s:%u", host, ntohs(port));
         } else {
             char dst[INET6_ADDRSTRLEN + 1] = {0};
             uint16_t dst_port = 0;
