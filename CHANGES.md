@@ -1,3 +1,9 @@
+v0.4.6 (2020-8-17)
+-----------
+* Fix: don't use uv_write_t
+* Feature: log level
+
+
 v0.4.5 (2016-7-23)
 -----------
 * Fix: Package avalible
