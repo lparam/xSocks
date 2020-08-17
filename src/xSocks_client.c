@@ -82,7 +82,6 @@ receive_from_client(struct client_context *client) {
 void
 forward_to_client(struct client_context *client, uint8_t *buf, int buflen) {
     uv_buf_t reply = uv_buf_init((char*)buf, buflen);
-    client->write_req.data = client;
     uv_write_t *write_req = malloc(sizeof *write_req);
     write_req->data = client;
     uv_write(write_req, &client->handle.stream, &reply, 1, client_send_cb);

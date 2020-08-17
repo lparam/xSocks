@@ -17,7 +17,6 @@ struct client_context {
         uv_tcp_t tcp;
         uv_udp_t udp;
     } handle;
-    uv_write_t write_req;
     struct sockaddr addr;
     struct remote_context *remote;
     uint8_t buf[MAX_PACKET_SIZE];
@@ -36,7 +35,6 @@ struct remote_context {
         uv_tcp_t tcp;
         uv_udp_t udp;
     } handle;
-    uv_write_t write_req;
     uv_timer_t *timer;
     uv_connect_t connect_req;
     struct sockaddr addr;
