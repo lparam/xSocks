@@ -99,7 +99,7 @@ LIBANCILLARY = $(OBJTREE)/3rd/libancillary/libancillary.a
 LIBS += $(OBJTREE)/3rd/libuv/.libs/libuv.a $(OBJTREE)/3rd/libsodium/src/libsodium/.libs/libsodium.a
 
 ifdef MINGW32
-LIBS += -lws2_32 -lpsapi -liphlpapi -luserenv
+LIBS += -lws2_32 -lpsapi -liphlpapi -luserenv -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic
 else
 LIBS += -pthread -ldl
 endif
@@ -110,8 +110,6 @@ ifdef STATIC
 LDFLAGS += -Wl,-static -static -static-libgcc -s
 endif
 
-XSOCKSD=$(OBJTREE)/xSocksd
-XSOCKS=$(OBJTREE)/xSocks
 XTPROXY=$(OBJTREE)/xTproxy
 XFORWARDER=$(OBJTREE)/xForwarder
 XTUNNEL=$(OBJTREE)/xTunnel
@@ -121,13 +119,13 @@ include $(SRCTREE)/config.mk
 #########################################################################
 
 ifdef OPENWRT
-all: libuv libsodium $(XSOCKS) $(XTPROXY) $(XFORWARDER) $(XTUNNEL)
+all: libuv libsodium xSocks $(XTPROXY) $(XFORWARDER) $(XTUNNEL)
 else
-all: libuv libsodium c-ares $(XSOCKSD) $(XSOCKS) $(XTPROXY) $(XFORWARDER) $(XTUNNEL)
+all: libuv libsodium c-ares xSocksd xSocks $(XTPROXY) $(XFORWARDER) $(XTUNNEL)
 endif
 
-android: libuv libsodium $(XSOCKS) $(XFORWARDER)
-mingw32: libuv libsodium c-ares $(XSOCKSD).exe $(XSOCKS).exe $(XFORWARDER).exe $(XTUNNEL).exe
+android: libuv libsodium xSocks $(XFORWARDER)
+mingw32: libuv libsodium c-ares xSocksd xSocks $(XFORWARDER).exe $(XTUNNEL).exe
 
 3rd/libuv/autogen.sh:
 	$(Q)git submodule update --init
@@ -210,7 +208,7 @@ lib3rd: $(LIBCORK) $(LIBIPSET)
 endif
 
 ifndef MINGW32
-$(XSOCKSD): \
+xSocksd: \
 	$(OBJTREE)/src/util.o \
 	$(OBJTREE)/src/logger.o \
 	$(OBJTREE)/src/common.o \
@@ -225,9 +223,9 @@ $(XSOCKSD): \
 	$(OBJTREE)/src/xSocksd_client.o \
 	$(OBJTREE)/src/xSocksd_remote.o \
 	$(OBJTREE)/src/xSocksd.o
-	$(LINK) $^ -o $@ $(LDFLAGS) $(OBJTREE)/3rd/c-ares/.libs/libcares.a
+	$(LINK) $^ -o $(OBJTREE)/$@ $(LDFLAGS) $(OBJTREE)/3rd/c-ares/.libs/libcares.a
 else
-$(XSOCKSD).exe: \
+xSocksd: \
 	src/util.o \
 	src/logger.o \
 	src/common.o \
@@ -240,7 +238,7 @@ $(XSOCKSD).exe: \
 	src/xSocksd_client.o \
 	src/xSocksd_remote.o \
 	src/xSocksd.o
-	$(LINK) $^ -o $@ 3rd/c-ares/.libs/libcares.a $(LDFLAGS)
+	$(LINK) $^ -o $(OBJTREE)/$@.exe 3rd/c-ares/.libs/libcares.a $(LDFLAGS)
 endif
 
 XSOCKS_OBJS = \
@@ -264,12 +262,12 @@ ifdef ANDROID
 endif
 
 ifndef MINGW32
-$(XSOCKS): \
+xSocks: \
 	$(XSOCKS_OBJS) \
 	| lib3rd
-	$(LINK) $^ -o $@ $(LDFLAGS) $(LIB3RD)
+	$(LINK) $^ -o $(OBJTREE)/$@ $(LDFLAGS) $(LIB3RD)
 else
-$(XSOCKS).exe: \
+xSocks: \
 	src/util.o \
 	src/logger.o \
 	src/common.o \
@@ -281,7 +279,7 @@ $(XSOCKS).exe: \
 	src/xSocks_client.o \
 	src/xSocks_remote.o \
 	src/xSocks.o
-	$(LINK) $^ -o $@ $(LDFLAGS)
+	$(LINK) $^ -o $(OBJTREE)/$@.exe $(LDFLAGS)
 endif
 
 $(XTPROXY): \
@@ -360,7 +358,7 @@ clean:
 	\( -name '*.o' -o -name '*~' \
 	-o -name '*.tmp' \) -print \
 	| xargs rm -f
-	@rm -f $(XSOCKSD) $(XSOCKS) $(XTPROXY) $(XFORWARDER) $(XTUNNEL)
+	@rm -f $(OBJTREE)/xSocksd $(OBJTREE)/xSocks $(XTPROXY) $(XFORWARDER) $(XTUNNEL)
 
 distclean: clean
 	@find $(OBJTREE)/3rd/libcork $(OBJTREE)/3rd/libipset -type f \
@@ -379,8 +377,8 @@ endif
 
 ifndef CROSS_COMPILE
 install:
-	$(Q)$(STRIP) --strip-unneeded $(XSOCKSD) && cp $(XSOCKSD) $(INSTALL_DIR)
-	$(Q)$(STRIP) --strip-unneeded $(XSOCKS) && cp $(XSOCKS) $(INSTALL_DIR)
+	$(Q)$(STRIP) --strip-unneeded xSocksd && cp $(OBJTREE)/xSocksd $(INSTALL_DIR)
+	$(Q)$(STRIP) --strip-unneeded xSocks && cp $(OBJTREE)/xSocks $(INSTALL_DIR)
 	$(Q)$(STRIP) --strip-unneeded $(XTPROXY) && cp $(XTPROXY) $(INSTALL_DIR)
 	$(Q)$(STRIP) --strip-unneeded $(XFORWARDER) && cp $(XFORWARDER) $(INSTALL_DIR)
 	$(Q)$(STRIP) --strip-unneeded $(XTUNNEL) && cp $(XTUNNEL) $(INSTALL_DIR)

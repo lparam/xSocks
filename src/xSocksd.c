@@ -19,6 +19,7 @@
 
 static int daemon_mode = 1;
 static int concurrency;
+static int log_level = LOG_INFO;
 static int nameserver_num;
 static int udprelay;
 static char *nameservers[MAX_DNS_NUM + 1];
@@ -201,7 +202,7 @@ setup_signal(uv_loop_t *loop, uv_signal_cb cb, void *data) {
 
 static void
 init(void) {
-    logger_init(daemon_mode);
+    logger_init(daemon_mode, log_level);
 
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);

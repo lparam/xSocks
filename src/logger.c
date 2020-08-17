@@ -18,6 +18,7 @@
 #define LOG_MESSAGE_SIZE 256
 
 static int _syslog = 0;
+static int _level = LOG_INFO;
 
 #ifdef _WIN32
 static uv_tty_t _tty;
@@ -29,7 +30,7 @@ static uv_tty_t _ttyerr;
 #endif
 
 static const char *levels[] = {
-    "EMERG", "ALERT", "CRIT", "ERR", "WARN", "NOTICE", "INFO", "DEBUG"
+    "EMERG", "ALERT", "CRIT", "ERRO", "WARN", "NOTICE", "INFO", "DEBG"
 };
 
 #ifndef ANDROID
@@ -70,6 +71,10 @@ void
 logger_log(uint32_t level, const char *msg, ...) {
 	char tmp[LOG_MESSAGE_SIZE];
 
+    if (level > _level) {
+        return;
+    }
+
 	va_list ap;
 	va_start(ap, msg);
 	vsnprintf(tmp, LOG_MESSAGE_SIZE, msg, ap);
@@ -96,7 +101,7 @@ logger_log(uint32_t level, const char *msg, ...) {
         char timestr[20];
         strftime(timestr, 20, "%Y/%m/%d %H:%M:%S", loctime);
         char m[300] = { 0 };
-        sprintf(m, "%s%s [%s]\033[0m: %s\n", colors[level], timestr, levels[level], tmp);
+        sprintf(m, "%s %s%s\033[0m %s\n", timestr, colors[level], levels[level], tmp);
 #ifdef _WIN32
         log2tty(&_tty, m);
 #else
@@ -131,7 +136,7 @@ logger_stderr(const char *msg, ...) {
 }
 
 int
-logger_init(int syslog) {
+logger_init(int syslog, int level) {
 #ifndef _WIN32
     _syslog = syslog;
 #else
@@ -140,6 +145,7 @@ logger_init(int syslog) {
     uv_tty_set_mode(&_tty, UV_TTY_MODE_NORMAL);
     uv_tty_set_mode(&_ttyerr, UV_TTY_MODE_NORMAL);
 #endif
+    _level = level;
 
     return 0;
 }

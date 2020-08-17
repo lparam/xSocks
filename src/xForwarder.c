@@ -15,6 +15,7 @@
 
 static int daemon_mode = 1;
 static int concurrency = 0;
+static int log_level = LOG_INFO;
 static char *local_addr = "0.0.0.0:5533";
 static char *server_addr_buf;
 static char *pidfile = "/var/run/xSocks/xForwarder.pid";
@@ -191,9 +192,9 @@ setup_signal(uv_loop_t *loop, uv_signal_cb cb, void *data) {
 static void
 init(void) {
 #ifdef ANDROID
-    logger_init(0);
+    logger_init(0, log_level);
 #else
-    logger_init(daemon_mode);
+    logger_init(daemon_mode, log_level);
 #endif
 
     setvbuf(stdout, NULL, _IONBF, 0);

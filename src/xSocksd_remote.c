@@ -128,7 +128,6 @@ receive_from_remote(struct remote_context *remote) {
 void
 forward_to_remote(struct remote_context *remote, uint8_t *buf, int buflen) {
     uv_buf_t request = uv_buf_init((char*)buf, buflen);
-    remote->write_req.data = remote;
     uv_write_t *write_req = malloc(sizeof(*write_req));
     write_req->data = remote;
     uv_write(write_req, &remote->handle.stream, &request, 1, remote_send_cb);

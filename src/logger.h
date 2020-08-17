@@ -16,7 +16,7 @@
 #define	LOG_DEBUG	7	/* debug-level messages */
 #endif
 
-int logger_init(int syslog);
+int logger_init(int syslog, int level);
 void logger_exit(void);
 void logger_stderr(const char *msg, ...);
 void logger_log(uint32_t level, const char *msg, ...);

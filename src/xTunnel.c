@@ -15,6 +15,7 @@
 
 static int daemon_mode = 1;
 static int concurrency;
+static int log_level = LOG_INFO;
 static char *tunnel_mode;
 static char *source_addr = "0.0.0.0:1222";
 static char *dest_addr;
@@ -194,7 +195,7 @@ setup_signal(uv_loop_t *loop, uv_signal_cb cb, void *data) {
 
 static int
 init(void) {
-    logger_init(daemon_mode);
+    logger_init(daemon_mode, log_level);
 
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
