@@ -194,7 +194,6 @@ signal_cb(uv_signal_t *handle, int signum) {
             uv_close((uv_handle_t *)&ctx->tcp, NULL);
             udprelay_close(ctx);
         }
-
     }
     if (signum == SIGTERM) {
         logger_log(LOG_INFO, "Received SIGTERM, scheduling shutdown...");
