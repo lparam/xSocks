@@ -149,21 +149,16 @@ receive_from_remote(struct remote_context *remote) {
 
 void
 forward_to_remote(struct remote_context *remote, uint8_t *buf, int buflen) {
-    uv_buf_t data;
-
-    if (remote->direct) {
-        data = uv_buf_init((char*)buf, buflen);
-        remote->write_req.data = remote;
-        uv_write(&remote->write_req, &remote->handle.stream, &data, 1, remote_send_cb);
-
-    } else {
+    uv_buf_t data = uv_buf_init((char*)buf, buflen);
+    if (remote->direct == 0) {
         buf -= HEADER_BYTES;
         write_size(buf, buflen);
         buflen += HEADER_BYTES;
         data = uv_buf_init((char*)buf, buflen);
-        remote->write_req.data = remote;
-        uv_write(&remote->write_req, &remote->handle.stream, &data, 1, remote_send_cb);
     }
+    uv_write_t *write_req = malloc(sizeof(*write_req));
+    write_req->data = remote;
+    uv_write(write_req, &remote->handle.stream, &data, 1, remote_send_cb);
 }
 
 void
@@ -188,6 +183,8 @@ remote_send_cb(uv_write_t *req, int status) {
     } else {
         logger_log(LOG_ERR, "forward to remote failed: %s", uv_strerror(status));
     }
+
+    free(req);
 }
 
 static void
