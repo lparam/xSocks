@@ -33,7 +33,6 @@ struct remote_context {
         uv_tcp_t tcp;
         uv_udp_t udp;
     } handle;
-    uv_write_t write_req;
     uv_timer_t *timer;
     uv_connect_t connect_req;
     uint16_t idle_timeout;
