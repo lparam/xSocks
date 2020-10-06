@@ -229,8 +229,7 @@ request_start(struct client_context *client, char *req_buf) {
     }
 
     int direct = 0;
-    struct sockaddr addr;
-    memset(&addr, 0, sizeof addr);
+    struct sockaddr_storage addr;
 
 #if !defined(_WIN32)
     if ((acl && (req->atyp == 1 || req->atyp == 4) && acl_contains_ip(host))) {
@@ -250,7 +249,7 @@ request_start(struct client_context *client, char *req_buf) {
     client->buflen = buflen;
     memcpy(req_buf, buf, buflen);
 
-    struct remote_context *remote = new_remote(idle_timeout, direct ? &addr : NULL);
+    struct remote_context *remote = new_remote(idle_timeout, direct ? (struct sockaddr *)&addr : NULL);
     remote->direct = direct;
     remote->client = client;
     client->remote = remote;

@@ -58,7 +58,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xSocks Version: %s Maintained by lparam\n", XSOCKS_VER);
+    printf("xSocks Version: %s Maintained by lparam\n", xSocks_VER);
 #ifdef _WIN32
     printf("Usage: %s [-l local] <-s server> <-k password> [-hvV]\n\n", prog);
 #else
@@ -95,7 +95,7 @@ parse_opts(int argc, char *argv[]) {
     while ((opt = getopt_long(argc, argv, _optString, _lopts, &longindex)) != -1) {
         switch (opt) {
         case 'v':
-            printf("xSocks version: %s \n", XSOCKS_VER);
+            printf("%s %s\n", xSocks_VER, xSocks_BUILD_TIME);
             exit(0);
             break;
         case 'h':
@@ -302,11 +302,11 @@ main(int argc, char *argv[]) {
         struct server_context ctx;
         ctx.udprelay = 1;
         ctx.udp_fd = create_socket(SOCK_DGRAM, 0);
-        ctx.local_addr = &bind_addr;
-        ctx.server_addr = &server_addr;
+        ctx.local_addr = (struct sockaddr *)&bind_addr;
+        ctx.server_addr = (struct sockaddr *)&server_addr;
 
         uv_tcp_init(loop, &ctx.tcp);
-        rc = uv_tcp_bind(&ctx.tcp, &bind_addr, 0);
+        rc = uv_tcp_bind(&ctx.tcp, (struct sockaddr *)&bind_addr, 0);
         if (rc) {
             logger_stderr("bind error: %s", uv_strerror(rc));
             return 1;
@@ -339,8 +339,8 @@ main(int argc, char *argv[]) {
             ctx->udp_fd = create_socket(SOCK_DGRAM, 1);
             ctx->udprelay = 1;
             ctx->accept_cb = client_accept_cb;
-            ctx->local_addr = &bind_addr;
-            ctx->server_addr = &server_addr;
+            ctx->local_addr = (struct sockaddr *)&bind_addr;
+            ctx->server_addr = (struct sockaddr *)&server_addr;
             rc = uv_sem_init(&ctx->semaphore, 0);
             rc = uv_thread_create(&ctx->thread_id, consumer_start, ctx);
         }

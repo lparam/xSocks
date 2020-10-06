@@ -81,7 +81,7 @@ print_buffer(const void *data, uint32_t count, uint32_t width, uint32_t linelen)
 }
 
 int
-resolve_addr(const char *buf, struct sockaddr *addr) {
+resolve_addr(const char *buf, struct sockaddr_storage *addr) {
 	char *p;
     char *tmp = strdup(buf);
     int rc = 0;
@@ -148,12 +148,12 @@ resolve_addr(const char *buf, struct sockaddr *addr) {
             goto err;
 
         } else {
-            *addr = *(struct sockaddr*)&addr4;
+            memcpy(addr, &addr4, sizeof(struct sockaddr_in));
         }
 
     } else {
         uv_ip6_addr(tmp, port, &addr6);
-        *addr = *(struct sockaddr*)&addr6;
+        memcpy(addr, &addr6, sizeof(struct sockaddr_in6));
     }
 
 err:

@@ -9,7 +9,7 @@
 
 #define container_of(ptr, type, member) ((type*)(((char*)(ptr)) - offsetof(type, member)))
 
-int resolve_addr(const char *buf, struct sockaddr *addr);
+int resolve_addr(const char *buf, struct sockaddr_storage *addr);
 int read_size(uint8_t *buffer);
 void write_size(uint8_t *buffer, int len);
 int ip_name(const struct sockaddr *ip, char *name, size_t size);

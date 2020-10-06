@@ -44,7 +44,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xTunnel Version: %s Maintained by lparam\n", TUNNEL_VER);
+    printf("xTunnel Version: %s Maintained by lparam\n", xTunnel_VER);
     printf("Usage: %s <-m mode> <-l local> <-t target> <-k password>\n", prog);
     printf("\t[-c concurrency] [-p pidfile] [-nVhv]\n\n");
     printf("Options:\n");
@@ -73,7 +73,7 @@ parse_opts(int argc, char *argv[]) {
     while ((opt = getopt_long(argc, argv, _optString, _lopts, &longindex)) != -1) {
         switch (opt) {
         case 'v':
-            printf("xTunnel version: %s \n", TUNNEL_VER);
+            printf("%s %s\n", xTunnel_VER, xTunnel_BUILD_TIME);
             exit(0);
             break;
         case 'h':
@@ -217,7 +217,7 @@ int
 main(int argc, char *argv[]) {
     int rc;
     uv_loop_t *loop;
-    struct sockaddr bind_addr;
+    struct sockaddr_storage bind_addr;
 
     parse_opts(argc, argv);
 
@@ -265,7 +265,7 @@ main(int argc, char *argv[]) {
     if (concurrency <= 1) {
         struct server_context ctx;
         uv_tcp_init(loop, &ctx.tcp);
-        rc = uv_tcp_bind(&ctx.tcp, &bind_addr, 0);
+        rc = uv_tcp_bind(&ctx.tcp, (struct sockaddr *)&bind_addr, 0);
         if (rc) {
             logger_stderr("bind error: %s", uv_strerror(rc));
             return 1;
@@ -294,7 +294,7 @@ main(int argc, char *argv[]) {
             ctx->index = i;
             ctx->tcp_fd = create_socket(SOCK_STREAM, 1);
             ctx->accept_cb = source_accept_cb;
-            ctx->local_addr = &bind_addr;
+            ctx->local_addr = (struct sockaddr *)&bind_addr;
             rc = uv_sem_init(&ctx->semaphore, 0);
             rc = uv_thread_create(&ctx->thread_id, consumer_start, ctx);
         }

@@ -63,7 +63,7 @@ int vpn;
 int acl;
 int verbose;
 uint16_t idle_timeout;
-struct sockaddr bind_addr;
-struct sockaddr server_addr;
+struct sockaddr_storage bind_addr;
+struct sockaddr_storage server_addr;
 
 #endif // for #ifndef XSOCKS_H

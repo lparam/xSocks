@@ -43,7 +43,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xForwarder Version: %s Maintained by lparam\n", XFORWARDER_VER);
+    printf("xForwarder Version: %s Maintained by lparam\n", xForwarder_VER);
     printf("Usage: %s [-l local] <-s server> <-d dest> <-k password> [-p pidfile] [-c concurrency] [-s signal] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -s <server address>\t : server address:port\n"
@@ -71,7 +71,7 @@ parse_opts(int argc, char *argv[]) {
     while ((opt = getopt_long(argc, argv, _optString, _lopts, &longindex)) != -1) {
         switch (opt) {
         case 'v':
-            printf("xForwarder version: %s \n", XFORWARDER_VER);
+            printf("%s %s\n", xForwarder_VER, xForwarder_BUILD_TIME);
             exit(0);
             break;
         case 'h':
@@ -272,12 +272,12 @@ main(int argc, char *argv[]) {
         struct server_context ctx;
         ctx.udprelay = 1;
         ctx.udp_fd = create_socket(SOCK_DGRAM, 0);
-        ctx.dest_addr = &dest_addr;
-        ctx.local_addr = &bind_addr;
-        ctx.server_addr = &server_addr;
+        ctx.dest_addr = (struct sockaddr *)&dest_addr;
+        ctx.local_addr = (struct sockaddr *)&bind_addr;
+        ctx.server_addr = (struct sockaddr *)&server_addr;
 
         uv_tcp_init(loop, &ctx.tcp);
-        rc = uv_tcp_bind(&ctx.tcp, &bind_addr, 0);
+        rc = uv_tcp_bind(&ctx.tcp, (struct sockaddr *)&bind_addr, 0);
         if (rc) {
             logger_stderr("bind error: %s", uv_strerror(rc));
             return 1;
@@ -310,9 +310,9 @@ main(int argc, char *argv[]) {
             ctx->udp_fd = create_socket(SOCK_DGRAM, 1);
             ctx->udprelay = 1;
             ctx->accept_cb = client_accept_cb;
-            ctx->dest_addr = &dest_addr;
-            ctx->local_addr = &bind_addr;
-            ctx->server_addr = &server_addr;
+            ctx->dest_addr = (struct sockaddr *)&dest_addr;
+            ctx->local_addr = (struct sockaddr *)&bind_addr;
+            ctx->server_addr = (struct sockaddr *)&server_addr;
             rc = uv_sem_init(&ctx->semaphore, 0);
             rc = uv_thread_create(&ctx->thread_id, consumer_start, ctx);
         }

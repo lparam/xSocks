@@ -7,7 +7,13 @@
 #include "packet.h"
 
 
-#define XTPROXY_VER          "xTproxy/" XSOCKS_VERSION
+#ifdef VERSION
+#define xTProxy_VER        VERSION
+#define xTProxy_BUILD_TIME BUILD_TIME
+#else
+#define xTProxy_VER        "undefined"
+#define xTProxy_BUILD_TIME ""
+#endif
 
 
 struct client_context {
