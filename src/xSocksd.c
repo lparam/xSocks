@@ -49,7 +49,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xSocksd Version: %s Maintained by lparam\n", XSOCKSD_VER);
+    printf("xSocksd Version: %s Maintained by lparam\n", xSocks_VER);
     printf("Usage: %s [-l bind] <-k password> [-p pidfile] [-c concurrency] [-t timeout] [-s signal] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -k <password>\t\t : password of server\n"
@@ -77,7 +77,7 @@ parse_opts(int argc, char *argv[]) {
     while ((opt = getopt_long(argc, argv, _optString, _lopts, &longindex)) != -1) {
         switch (opt) {
         case 'v':
-            printf("xSocksd version: %s \n", XSOCKSD_VER);
+            printf("%s %s\n", xSocks_VER, xSocks_BUILD_TIME);
             exit(0);
             break;
         case 'h':

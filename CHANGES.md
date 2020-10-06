@@ -1,3 +1,10 @@
+v0.5.0 (2020-10-06)
+-----------
+* Fix: ipv6 sockaddr
+* Fix: crypto overlap
+* Change: chacha20 instead of salsa20
+
+
 v0.4.6 (2020-8-17)
 -----------
 * Fix: don't use uv_write_t

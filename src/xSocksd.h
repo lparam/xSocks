@@ -7,7 +7,13 @@
 #include "resolver.h"
 
 
-#define XSOCKSD_VER          "xSocksd/" XSOCKS_VERSION
+#ifdef VERSION
+#define xSocksd_VER        VERSION
+#define xSocksd_BUILD_TIME BUILD_TIME
+#else
+#define xSocksd_VER        "undefined"
+#define xSocksd_BUILD_TIME ""
+#endif
 
 
 struct client_context {

@@ -44,7 +44,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xTunnel Version: %s Maintained by lparam\n", TUNNEL_VER);
+    printf("xTunnel Version: %s Maintained by lparam\n", xTunnel_VER);
     printf("Usage: %s <-m mode> <-l local> <-t target> <-k password>\n", prog);
     printf("\t[-c concurrency] [-p pidfile] [-nVhv]\n\n");
     printf("Options:\n");
@@ -73,7 +73,7 @@ parse_opts(int argc, char *argv[]) {
     while ((opt = getopt_long(argc, argv, _optString, _lopts, &longindex)) != -1) {
         switch (opt) {
         case 'v':
-            printf("xTunnel version: %s \n", TUNNEL_VER);
+            printf("%s %s\n", xTunnel_VER, xTunnel_BUILD_TIME);
             exit(0);
             break;
         case 'h':

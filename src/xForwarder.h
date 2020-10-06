@@ -6,8 +6,13 @@
 #include "packet.h"
 
 
-#define XFORWARDER_VER          "xForwarder/" XSOCKS_VERSION
-
+#ifdef VERSION
+#define xForwarder_VER        VERSION
+#define xForwarder_BUILD_TIME BUILD_TIME
+#else
+#define xForwarder_VER        "undefined"
+#define xForwarder_BUILD_TIME ""
+#endif
 
 struct client_context {
     int stage;

@@ -43,7 +43,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xTproxy Version: %s Maintained by lparam\n", XTPROXY_VER);
+    printf("xTproxy Version: %s Maintained by lparam\n", xTProxy_VER);
     printf("Usage: %s <-l local> <-s server> <-k password> [-p pidfile] [-c concurrency] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -h, --help\t\t : this help\n"
@@ -68,7 +68,7 @@ parse_opts(int argc, char *argv[]) {
     while ((opt = getopt_long(argc, argv, _optString, _lopts, &longindex)) != -1) {
         switch (opt) {
         case 'v':
-            printf("xTproxy version: %s \n", XTPROXY_VER);
+            printf("%s %s\n", xTProxy_VER, xTProxy_BUILD_TIME);
             exit(0);
             break;
         case 'h':
