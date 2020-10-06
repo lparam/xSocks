@@ -234,10 +234,9 @@ forward_to_server(struct sockaddr *server_addr, struct client_context *client, u
 }
 
 static int
-getdestaddr(struct msghdr *msg, struct sockaddr *dstaddr) {
+getdestaddr(struct msghdr *msg, struct sockaddr_storage *dstaddr) {
     struct cmsghdr *cmsg;
     union {
-        struct sockaddr addr;
         struct sockaddr_in addr4;
         struct sockaddr_in6 addr6;
     } addr;
@@ -246,13 +245,13 @@ getdestaddr(struct msghdr *msg, struct sockaddr *dstaddr) {
         if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_RECVORIGDSTADDR) {
             memcpy(&addr.addr4, CMSG_DATA(cmsg), sizeof(struct sockaddr_in));
             addr.addr4.sin_family = AF_INET;
-            memcpy(dstaddr, &addr.addr, sizeof(struct sockaddr));
+            memcpy(dstaddr, &addr.addr4, sizeof(struct sockaddr_in));
             return 0;
 
         } else if (cmsg->cmsg_level == SOL_IPV6 && cmsg->cmsg_type == IP_RECVORIGDSTADDR) {
             memcpy(&addr.addr6, CMSG_DATA(cmsg), sizeof(struct sockaddr_in6));
             addr.addr6.sin6_family = AF_INET6;
-            memcpy(dstaddr, &addr.addr, sizeof(struct sockaddr));
+            memcpy(dstaddr, &addr.addr6, sizeof(struct sockaddr_in6));
             return 0;
         }
     }
@@ -284,12 +283,12 @@ poll_cb(uv_poll_t *watcher, int status, int events) {
             logger_stderr("receive from client error: %s", strerror(errno));
         }
 
-        struct sockaddr dest_addr;
+        struct sockaddr_storage dest_addr;
         if (getdestaddr(&msg, &dest_addr)) {
             logger_stderr("can not get destination address");
         }
 
-        int addrlen = dest_addr.sa_family == AF_INET ? IPV4_HEADER_LEN : IPV6_HEADER_LEN;
+        int addrlen = dest_addr.ss_family == AF_INET ? IPV4_HEADER_LEN : IPV6_HEADER_LEN;
 
         int mlen = addrlen + msglen;
         int clen = PRIMITIVE_BYTES + mlen;
@@ -306,16 +305,15 @@ poll_cb(uv_poll_t *watcher, int status, int events) {
          * +------+----------+----------+----------+
          *
          */
-        if (dest_addr.sa_family == AF_INET) {
-            struct sockaddr_in *addr = (struct sockaddr_in *)&dest_addr;
+        if (dest_addr.ss_family == AF_INET) {
+            const struct sockaddr_in *addr = (const struct sockaddr_in *)&dest_addr;
             m[0] = ATYP_IPV4;
             memcpy(m + 1, &addr->sin_addr, 4);
             memcpy(m + 1 + 4, &addr->sin_port, 2);
-
         } else {
-            struct sockaddr_in6 *addr = (struct sockaddr_in6 *)&dest_addr;
+            const struct sockaddr_in6 *addr = (const struct sockaddr_in6 *)&dest_addr;
             m[0] = ATYP_IPV6;
-            memcpy(m + 1, &addr->sin6_addr, 16);
+            memcpy(m + 1, &addr->sin6_addr, sizeof(addr->sin6_addr));
             memcpy(m + 1 + 16, &addr->sin6_port, 2);
         }
         memcpy(m + addrlen, buffer, msglen);
@@ -345,9 +343,13 @@ poll_cb(uv_poll_t *watcher, int status, int events) {
                 uv_mutex_unlock(&mutex);
             }
 
-            client->dest_addr = dest_addr;
+            client->dest_addr = *(struct sockaddr *)&dest_addr;
             reset_timer(client);
             forward_to_server(server->server_addr, client, c, clen);
+
+        } else {
+            logger_log(LOG_ERR, "failed to encrypt data");
+            free(c);
         }
     }
 }
