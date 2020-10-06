@@ -87,7 +87,7 @@ analyse_request_addr(struct xSocks_request *req, struct sockaddr *dest, char *de
 
         uv_inet_ntop(AF_INET, (const void *)(req->addr), dest_buf, INET_ADDRSTRLEN);
         uint16_t port = read_size((uint8_t*)(req->addr + in_addr_len));
-        sprintf(dest_buf, "%s:%u", dest_buf, port);
+        sprintf(dest_buf + strlen(dest_buf), ":%u", port);
 
         addrlen = 4 + portlen;
 
@@ -102,7 +102,7 @@ analyse_request_addr(struct xSocks_request *req, struct sockaddr *dest, char *de
         host[namelen] = '\0';
         memcpy(dest_buf, req->addr + 1, namelen);
         uint16_t port = read_size((uint8_t*)(req->addr + 1 + namelen));
-        sprintf(dest_buf, "%s:%u", dest_buf, port);
+        sprintf(dest_buf + namelen, ":%u", port);
 
         addrlen = 1 + namelen + portlen;
 
@@ -113,7 +113,7 @@ analyse_request_addr(struct xSocks_request *req, struct sockaddr *dest, char *de
 
         uv_inet_ntop(AF_INET6, (const void *)(req->addr), dest_buf, INET_ADDRSTRLEN);
         uint16_t port = read_size((uint8_t*)(req->addr + in6_addr_len));
-        sprintf(dest_buf, "%s:%u", dest_buf, port);
+        sprintf(dest_buf + strlen(dest_buf), ":%u", port);
 
         addrlen = 16 + portlen;
 
