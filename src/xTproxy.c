@@ -204,7 +204,7 @@ int
 main(int argc, char *argv[]) {
     int rc;
     uv_loop_t *loop;
-    struct sockaddr local_addr, server_addr;
+    struct sockaddr_storage local_addr, server_addr;
 
     parse_opts(argc, argv);
 
@@ -247,13 +247,13 @@ main(int argc, char *argv[]) {
 
     if (concurrency <= 1) {
         struct server_context ctx;
-        ctx.local_addr = &local_addr;
-        ctx.server_addr = &server_addr;
+        ctx.local_addr = (struct sockaddr *)&local_addr;
+        ctx.server_addr =(struct sockaddr *)&server_addr;
         ctx.udp_fd = create_socket(SOCK_DGRAM, 0);
         ctx.udprelay = 1;
 
         uv_tcp_init(loop, &ctx.tcp);
-        rc = uv_tcp_bind(&ctx.tcp, &local_addr, 0);
+        rc = uv_tcp_bind(&ctx.tcp, (struct sockaddr *)&local_addr, 0);
         if (rc) {
             logger_stderr("bind error: %s", uv_strerror(rc));
             return 1;
@@ -283,8 +283,8 @@ main(int argc, char *argv[]) {
             ctx->udp_fd = create_socket(SOCK_DGRAM, 1);
             ctx->udprelay = 1;
             ctx->accept_cb = client_accept_cb;
-            ctx->local_addr = &local_addr;
-            ctx->server_addr = &server_addr;
+            ctx->local_addr = (struct sockaddr *)&local_addr;
+            ctx->server_addr = (struct sockaddr *)&server_addr;
             rc = uv_sem_init(&ctx->semaphore, 0);
             rc = uv_thread_create(&ctx->thread_id, consumer_start, ctx);
         }

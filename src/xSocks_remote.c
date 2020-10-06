@@ -60,7 +60,7 @@ new_remote(uint16_t timeout, struct sockaddr *addr) {
     remote->stage = XSTAGE_HANDSHAKE;
     remote->timer = malloc(sizeof(uv_timer_t));
     remote->idle_timeout = timeout;
-    remote->addr = addr ? *addr : server_addr;
+    remote->addr = addr ? *addr : *(struct sockaddr *)&server_addr;
     remote->packet.max = MAX_PACKET_SIZE - HEADER_BYTES;
     packet_reset(&remote->packet);
     return remote;

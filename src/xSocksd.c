@@ -230,7 +230,7 @@ int
 main(int argc, char *argv[]) {
     int rc;
     uv_loop_t *loop;
-    struct sockaddr local_addr;
+    struct sockaddr_storage local_addr;
 
     parse_opts(argc, argv);
 
@@ -273,13 +273,13 @@ main(int argc, char *argv[]) {
 
     if (concurrency <= 1) {
         struct server_context ctx;
-        ctx.local_addr = &local_addr;
+        ctx.local_addr =  (struct sockaddr *)&local_addr;
         ctx.udprelay = udprelay;
         ctx.resolver = 1;
         ctx.udp_fd = create_socket(SOCK_DGRAM, 0);
 
         uv_tcp_init(loop, &ctx.tcp);
-        rc = uv_tcp_bind(&ctx.tcp, &local_addr, 0);
+        rc = uv_tcp_bind(&ctx.tcp, ctx.local_addr, 0);
         if (rc) {
             logger_stderr("tcp bind error: %s", uv_strerror(rc));
             return 1;
@@ -324,7 +324,7 @@ main(int argc, char *argv[]) {
             ctx->accept_cb = client_accept_cb;
             ctx->nameservers = nameservers;
             ctx->nameserver_num = nameserver_num;
-            ctx->local_addr = &local_addr;
+            ctx->local_addr =  (struct sockaddr *)&local_addr;
             rc = uv_sem_init(&ctx->semaphore, 0);
             rc = uv_thread_create(&ctx->thread_id, consumer_start, ctx);
         }

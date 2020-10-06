@@ -59,6 +59,6 @@ void receive_from_target(struct target_context *target);
 
 int verbose;
 enum tunnel_mode mode;
-struct sockaddr target_addr;
+struct sockaddr_storage target_addr;
 
 #endif // for #ifndef XTUNNEL_H

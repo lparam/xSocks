@@ -112,7 +112,7 @@ remote_connect_cb(uv_connect_t *req, int status) {
     } else {
         if (status != UV_ECANCELED) {
             char addrbuf[INET6_ADDRSTRLEN + 1];
-            ip_name(&server_addr, addrbuf, sizeof(addrbuf));
+            ip_name((struct sockaddr *)&server_addr, addrbuf, sizeof(addrbuf));
             logger_log(LOG_ERR, "connect to %s failed: %s", addrbuf, uv_strerror(status));
             close_client(client);
             close_remote(remote);
@@ -144,7 +144,7 @@ request_to_server(struct remote_context *remote) {
     char buf[260] = {0};
     struct client_context *client = remote->client;
 
-    struct sockaddr *addr = &dest_addr;
+    struct sockaddr *addr = (struct sockaddr *)&dest_addr;
 
     /*
      *
@@ -183,10 +183,10 @@ void
 connect_to_remote(struct remote_context *remote) {
     remote->stage = XSTAGE_CONNECT;
     remote->connect_req.data = remote;
-    int rc = uv_tcp_connect(&remote->connect_req, &remote->handle.tcp, &server_addr, remote_connect_cb);
+    int rc = uv_tcp_connect(&remote->connect_req, &remote->handle.tcp, (struct sockaddr *)&server_addr, remote_connect_cb);
     if (rc) {
         char addrbuf[INET6_ADDRSTRLEN + 1];
-        ip_name(&server_addr, addrbuf, sizeof(addrbuf));
+        ip_name((struct sockaddr *)&server_addr, addrbuf, sizeof(addrbuf));
         logger_log(LOG_ERR, "connect to %s error: %s", addrbuf, uv_strerror(rc));
         close_client(remote->client);
         close_remote(remote);

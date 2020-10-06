@@ -58,8 +58,8 @@ void close_loop(uv_loop_t *loop);
 int verbose;
 uint16_t idle_timeout;
 char *dest_addr_buf;
-struct sockaddr bind_addr;
-struct sockaddr dest_addr;
-struct sockaddr server_addr;
+struct sockaddr_storage bind_addr;
+struct sockaddr_storage dest_addr;
+struct sockaddr_storage server_addr;
 
 #endif // for #ifndef XFORWARDER_H

@@ -144,7 +144,7 @@ target_connect_cb(uv_connect_t *req, int status) {
 void
 connect_to_target(struct target_context *target) {
     target->connect_req.data = target;
-    int rc = uv_tcp_connect(&target->connect_req, &target->handle.tcp, &target_addr, target_connect_cb);
+    int rc = uv_tcp_connect(&target->connect_req, &target->handle.tcp, (struct sockaddr *)&target_addr, target_connect_cb);
     if (rc) {
         logger_log(LOG_ERR, "connect to target error: %s", uv_strerror(rc));
         close_source(target->source);
