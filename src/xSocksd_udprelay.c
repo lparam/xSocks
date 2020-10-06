@@ -138,12 +138,12 @@ target_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
          */
         if (addr->sa_family == AF_INET) {
             struct sockaddr_in *addr4 = (struct sockaddr_in *)addr;
-            m[0] = 1;
+            m[0] = ATYP_IPV4;
             memcpy(m + 1, &addr4->sin_addr, 4);
             memcpy(m + 1 + 4, &addr4->sin_port, 2);
         } else {
             struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)addr;
-            m[0] = 4;
+            m[0] = ATYP_IPV6;
             memcpy(m + 1, &addr6->sin6_addr, 16);
             memcpy(m + 1 + 16, &addr6->sin6_port, 2);
         }
