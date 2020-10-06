@@ -58,7 +58,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xSocks Version: %s Maintained by lparam\n", XSOCKS_VER);
+    printf("xSocks Version: %s Maintained by lparam\n", xSocks_VER);
 #ifdef _WIN32
     printf("Usage: %s [-l local] <-s server> <-k password> [-hvV]\n\n", prog);
 #else
@@ -95,7 +95,7 @@ parse_opts(int argc, char *argv[]) {
     while ((opt = getopt_long(argc, argv, _optString, _lopts, &longindex)) != -1) {
         switch (opt) {
         case 'v':
-            printf("xSocks version: %s \n", XSOCKS_VER);
+            printf("%s %s\n", xSocks_VER, xSocks_BUILD_TIME);
             exit(0);
             break;
         case 'h':

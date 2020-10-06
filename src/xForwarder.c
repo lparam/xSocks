@@ -43,7 +43,7 @@ static const struct option _lopts[] = {
 
 static void
 print_usage(const char *prog) {
-    printf("xForwarder Version: %s Maintained by lparam\n", XFORWARDER_VER);
+    printf("xForwarder Version: %s Maintained by lparam\n", xForwarder_VER);
     printf("Usage: %s [-l local] <-s server> <-d dest> <-k password> [-p pidfile] [-c concurrency] [-s signal] [-nhvV]\n\n", prog);
     printf("Options:\n");
     puts("  -s <server address>\t : server address:port\n"
@@ -71,7 +71,7 @@ parse_opts(int argc, char *argv[]) {
     while ((opt = getopt_long(argc, argv, _optString, _lopts, &longindex)) != -1) {
         switch (opt) {
         case 'v':
-            printf("xForwarder version: %s \n", XFORWARDER_VER);
+            printf("%s %s\n", xForwarder_VER, xForwarder_BUILD_TIME);
             exit(0);
             break;
         case 'h':

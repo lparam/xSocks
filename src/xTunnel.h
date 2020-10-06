@@ -6,8 +6,13 @@
 #include "packet.h"
 
 
-#define TUNNEL_VER          "xTunnel/" XSOCKS_VERSION
-
+#ifdef VERSION
+#define xTunnel_VER        VERSION
+#define xTunnel_BUILD_TIME BUILD_TIME
+#else
+#define xTunnel_VER        "undefined"
+#define xTunnel_BUILD_TIME ""
+#endif
 
 struct source_context {
     int stage;

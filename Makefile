@@ -1,6 +1,6 @@
 MAJOR = 0
-MINOR = 4
-PATCH = 5
+MINOR = 5
+PATCH = 0
 NAME = xSocks
 
 ifdef O
@@ -26,7 +26,17 @@ OBJTREE	:= $(if $(BUILD_DIR),$(BUILD_DIR),$(CURDIR))
 SRCTREE	:= $(CURDIR)
 export SRCTREE OBJTREE
 
+TAG = $(shell git describe --always --tags --abbrev=0 | tr -d "[v\r\n]")
+COMMIT = $(shell git rev-parse --short HEAD| tr -d "[ \r\n\']")
+VERSION = v$(TAG)-$(COMMIT)
+
+ifeq ($(strip $(COMMIT)),)
+VERSION = v$(MAJOR).$(MINOR).$(PATCH)
+endif
+
 #########################################################################
+
+CPPFLAGS = -DVERSION=\"$(VERSION)\" -DBUILD_TIME=\"$(shell date '+%Y-%m-%d')\ $(shell date '+%H:%M:%S')\"
 
 ifdef HOST
 CROSS_COMPILE = $(HOST)-
@@ -43,7 +53,7 @@ OPENWRT = 1
 endif
 
 ifdef CROSS_COMPILE
-CPPFLAGS = -DCROSS_COMPILE
+CPPFLAGS += -DCROSS_COMPILE
 endif
 
 CFLAGS = \
@@ -87,10 +97,6 @@ LDFLAGS = -Wl,--gc-sections
 ifdef ANDROID
 LDFLAGS += -pie -fPIE
 LIBS += -llog
-else
-	ifndef MINGW32
-		LIBS += -lrt
-	endif
 endif
 
 LIBCORK = $(OBJTREE)/3rd/libcork/libcork.a
@@ -165,6 +171,8 @@ $(LIBCORK): \
 	$(OBJTREE)/3rd/libcork/src/ds/array.o \
 	$(OBJTREE)/3rd/libcork/src/ds/hash-table.o \
 	$(OBJTREE)/3rd/libcork/src/ds/buffer.o \
+	$(OBJTREE)/3rd/libcork/src/ds/managed-buffer.o \
+	$(OBJTREE)/3rd/libcork/src/ds/slice.o \
 	$(OBJTREE)/3rd/libcork/src/ds/dllist.o \
 	$(OBJTREE)/3rd/libcork/src/posix/process.o
 	$(BUILD_AR) rcu $@ $^

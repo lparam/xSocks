@@ -4,7 +4,13 @@
 #include "uv.h"
 #include "socks.h"
 
-#define XSOCKS_VERSION      "0.4.5"
+#ifdef VERSION
+#define xSocks_VER        VERSION
+#define xSocks_BUILD_TIME BUILD_TIME
+#else
+#define xSocks_VER        "undefined"
+#define xSocks_BUILD_TIME ""
+#endif
 
 struct server_context {
     int index;
