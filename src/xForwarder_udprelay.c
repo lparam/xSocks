@@ -132,7 +132,7 @@ server_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
     reset_timer(client);
 
     int mlen = nread - PRIMITIVE_BYTES;
-    uint8_t *m = (uint8_t *)buf->base;
+    uint8_t *m = (uint8_t *)buf->base + PRIMITIVE_BYTES;
 
     int valid = mlen > 0;
     if (!valid) {
@@ -147,7 +147,7 @@ server_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
     memmove(m, m + addrlen, mlen - addrlen);
     mlen -= addrlen;
 
-    forward_to_client(client, m , mlen);
+    forward_to_client(client, m, mlen);
 
     return;
 

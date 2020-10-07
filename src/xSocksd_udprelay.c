@@ -236,7 +236,7 @@ client_recv_cb(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const struc
         return;
     }
 
-    uint8_t *m = (uint8_t *)buf->base;
+    uint8_t *m = (uint8_t *)buf->base + PRIMITIVE_BYTES;
     int mlen = nread - PRIMITIVE_BYTES;
 
     int valid = mlen > 0;
