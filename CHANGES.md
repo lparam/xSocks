@@ -1,3 +1,8 @@
+v0.5.1 (2020-10-07)
+-----------
+* Feature: macOS support
+
+
 v0.5.0 (2020-10-06)
 -----------
 * Fix: ipv6 sockaddr
