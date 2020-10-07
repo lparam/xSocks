@@ -92,8 +92,6 @@ ifdef ANDROID
 	CPPFLAGS += -I3rd/libancillary
 endif
 
-LDFLAGS = -Wl,--gc-sections
-
 ifdef ANDROID
 LDFLAGS += -pie -fPIE
 LIBS += -llog
@@ -114,6 +112,11 @@ LDFLAGS += $(LIBS)
 
 ifdef STATIC
 LDFLAGS += -Wl,-static -static -static-libgcc -s
+endif
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	LDFLAGS += -Wl,-U,_resolver_init -Wl,-U,_resolver_shutdown -Wl,-U,_resolver_destroy
 endif
 
 XTPROXY=$(OBJTREE)/xTproxy
