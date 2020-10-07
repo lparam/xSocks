@@ -143,11 +143,11 @@ forward_to_client(struct client_context *client, uint8_t *buf, int buflen) {
 }
 
 static int
-request_start(struct client_context *client) {
+request_start(struct client_context *client, uint8_t *buf) {
     char host[256] = {0};
     uint16_t *portbuf; // avoid Wstrict-aliasing
     struct remote_context *remote = client->remote;
-    struct xSocks_request *request = (struct xSocks_request *)client->packet.buf;
+    struct xSocks_request *request = (struct xSocks_request *)buf;
 
     int addrlen = analyse_request_addr(request, &remote->addr, client->target_addr, host);
     if (addrlen < 1) {
@@ -168,7 +168,7 @@ request_start(struct client_context *client) {
             break;
 
         case ATYP_HOST:
-            portbuf = ((uint16_t *)(client->packet.buf + 1 + addrlen - 2));
+            portbuf = ((uint16_t *)(buf + 1 + addrlen - 2));
             resolve_remote(remote, host, *portbuf);
             break;
 
@@ -221,18 +221,18 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
         if (rc == PACKET_UNCOMPLETE) {
             return;
         } else if (rc == PACKET_INVALID) {
-            goto error;
+            goto invalid;
         }
 
         int clen = packet->size;
         int mlen = packet->size - PRIMITIVE_BYTES;
-        uint8_t *c = packet->buf, *m = packet->buf;
+        uint8_t *c = packet->buf, *m = packet->buf + PRIMITIVE_BYTES;
 
         assert(mlen > 0 && mlen <= MAX_PACKET_SIZE - PRIMITIVE_BYTES);
 
         int err = crypto_decrypt(m, c, clen);
         if (err) {
-            goto error;
+            goto invalid;
         }
 
         uv_read_stop(stream);
@@ -240,7 +240,7 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
         switch (client->stage) {
         case XSTAGE_REQUEST:
             if (verify_request(m, mlen)) {
-                if (request_start(client)) {
+                if (request_start(client, m)) {
                     goto error;
                 }
             } else {
@@ -268,11 +268,12 @@ client_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 
     return;
 
-error:
+invalid:
     logger_log(LOG_ERR, "invalid tcp packet");
     if (verbose) {
         dump_hex(buf->base, nread, "invalid tcp Packet");
     }
+error:
     close_client(client);
     close_remote(remote);
 }

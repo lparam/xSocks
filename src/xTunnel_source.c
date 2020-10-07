@@ -95,7 +95,7 @@ source_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
             if (rc == PACKET_COMPLETED) {
                 int clen = packet->size;
                 int mlen = packet->size - PRIMITIVE_BYTES;
-                uint8_t *c = packet->buf, *m = packet->buf;
+                uint8_t *c = packet->buf, *m = packet->buf + PRIMITIVE_BYTES;
 
                 assert(mlen > 0 && mlen <= MAX_PACKET_SIZE - PRIMITIVE_BYTES);
 
