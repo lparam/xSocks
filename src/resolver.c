@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <errno.h>
 
-#include "tree.h"
+#include "uv/tree.h"
 #include "ares.h"
 #include "resolver.h"
 #include "util.h"
