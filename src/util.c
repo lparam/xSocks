@@ -117,7 +117,12 @@ resolve_addr(const char *buf, struct sockaddr_storage *addr) {
 
             int err = getaddrinfo(tmp, p, &hints, &result);
             if (err != 0) {
-                logger_stderr("Resolve %s error: %s", tmp, gai_strerror(err));
+                const char *msg = gai_strerror(err);
+                if (msg && msg[0]) {
+                    logger_stderr("Failed to resolve %s (%s)", tmp, msg);
+                } else {
+                    logger_stderr("Failed to resolve %s", tmp);
+                }
                 rc = 1;
                 goto err;
             }
