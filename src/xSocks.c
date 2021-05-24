@@ -24,7 +24,7 @@ static int concurrency = 0;
 static int log_level = LOG_INFO;
 static char *local_addr = "0.0.0.0:1080";
 static char *server_addr_buf;
-static char *pidfile = "/var/run/xSocks/xSocks.pid";
+static char *pidfile = "/var/run/xSocks.pid";
 static char *password = NULL;
 static char *acl_file;
 static char *xsignal;
@@ -71,7 +71,7 @@ print_usage(const char *prog) {
          "  [-t <timeout>]\t : connection timeout in senconds\n"
 #ifndef _WIN32
          "  [-c <concurrency>]\t : worker threads\n"
-         "  [-p <pidfile>]\t : pid file path (default: /var/run/xSocks/xSocks.pid)\n"
+         "  [-p <pidfile>]\t : pid file path (default: /var/run/xSocks.pid)\n"
          "  [--acl <aclfile>]\t : ACL (Access Control List) file path\n"
 #endif
 #ifdef ANDROID

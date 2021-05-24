@@ -20,7 +20,6 @@ BLACK_LIST=/etc/black_list
 start() {
     tproxy_start
     acl add
-    mkdir -p /var/run/xSocks
     xSocks -s $SERVER -k $PASSWORD
     xTproxy -s $SERVER -k $PASSWORD
     xForwarder -l 0.0.0.0:5533 -d $DNS:53 -s $SERVER -k $PASSWORD

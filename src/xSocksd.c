@@ -24,7 +24,7 @@ static int nameserver_num;
 static int udprelay;
 static char *nameservers[MAX_DNS_NUM + 1];
 static char *local_addrbuf = "0.0.0.0:1073";
-static char *pidfile = "/var/run/xSocks/xSocksd.pid";
+static char *pidfile = "/var/run/xSocksd.pid";
 static char *password;
 static char *xsignal;
 #ifndef _WIN32
@@ -59,7 +59,7 @@ print_usage(const char *prog) {
          "  [-u]\t\t\t : enable udp relay\n"
 #ifndef _WIN32
          "  [-c <concurrency>]\t : worker threads\n"
-         "  [-p <pidfile>]\t : pid file path (default: /var/run/xSocks/xSocksd.pid)\n"
+         "  [-p <pidfile>]\t : pid file path (default: /var/run/xSocksd.pid)\n"
          "  [--signal <signal>]\t : send signal to xSocksd: quit, stop\n"
          "  [-n]\t\t\t : non daemon mode\n"
 #endif

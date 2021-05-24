@@ -108,7 +108,6 @@ CHAIN=XSOCKS
 
 start() {
     tproxy_start
-    mkdir -p /var/run/xSocks
     xSocks -s $SERVER -k $PASSWORD
     xTproxy -s $SERVER -k $PASSWORD
     xForwarder -l 0.0.0.0:5533 -d 8.8.8.8:53 -s $SERVER -k $PASSWORD
