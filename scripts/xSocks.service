@@ -1,0 +1,15 @@
+[Unit]
+Description=xTun service
+Documentation=http://github.com/lparam/xTun
+After=network-online.target
+
+[Service]
+Type=forking
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW CAP_NET_BIND_SERVICE
+Environment=LOGFORMAT=0
+EnvironmentFile=-/etc/default/xSocks
+ExecStart=/usr/local/bin/xSocks $OPTIONS
+ExecStop=/bin/kill -s QUIT $MAINPID
+
+[Install]
+WantedBy=multi-user.target
