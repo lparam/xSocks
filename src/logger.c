@@ -55,9 +55,9 @@ log2tty(uv_tty_t *tty, char *msg) {
     uv_write_t *req = malloc(sizeof(*req));
     uv_buf_t buf = uv_buf_init(msg, strlen(msg));
 
-	if (uv_guess_handle(1) == UV_TTY) {
-		uv_write(req, (uv_stream_t*)tty, &buf, 1, tty_send_cb);
-	}
+    if (uv_guess_handle(1) == UV_TTY) {
+        uv_write(req, (uv_stream_t*)tty, &buf, 1, tty_send_cb);
+    }
 }
 
 #else
