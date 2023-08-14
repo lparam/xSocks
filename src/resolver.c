@@ -6,10 +6,11 @@
 #include <errno.h>
 
 #include "uv/tree.h"
+
 #include "ares.h"
+#include "logger.h"
 #include "resolver.h"
 #include "util.h"
-#include "logger.h"
 
 
 struct resolver_context {
@@ -133,25 +134,27 @@ query_cb(void *arg, int status, int timeouts, struct hostent *hostent) {
     }
 
     if (status == ARES_SUCCESS) {
-        struct sockaddr addr;
-        memset(&addr, 0, sizeof(addr));
+        union {
+            struct sockaddr addr;
+            struct sockaddr_in addr4;
+            struct sockaddr_in6 addr6;
+        } dest;
+
         for (uint32_t i = 0; hostent->h_addr_list[i] != NULL; i++) {
             if (hostent->h_addrtype == AF_INET) {
-                struct sockaddr_in *addr4 = (struct sockaddr_in *)&addr;
-                addr4->sin_family = AF_INET;
-                addr4->sin_addr = *(const struct in_addr *)hostent->h_addr_list[i];
-                addr4->sin_port = query->port;
+                dest.addr4.sin_family = AF_INET;
+                dest.addr4.sin_addr = *(const struct in_addr *)hostent->h_addr_list[i];
+                dest.addr4.sin_port = query->port;
 
             } else if (hostent->h_addrtype == AF_INET6) {
-                struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)&addr;
-                addr6->sin6_family = AF_INET6;
-                addr6->sin6_addr = *(const struct in6_addr *)hostent->h_addr_list[i];
-                addr6->sin6_port = query->port;
+                dest.addr6.sin6_family = AF_INET6;
+                dest.addr6.sin6_addr = *(const struct in6_addr *)hostent->h_addr_list[i];
+                dest.addr6.sin6_port = query->port;
             }
             break;
         }
 
-        query->callback(&addr, query->data);
+        query->callback(&dest.addr, query->data);
 
     } else {
         query->status = status;
