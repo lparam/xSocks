@@ -11,6 +11,9 @@
 #include "xSocks.h"
 
 
+extern int verbose;
+extern struct sockaddr_storage server_addr;
+
 static void remote_send_cb(uv_write_t *req, int status);
 static void remote_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 

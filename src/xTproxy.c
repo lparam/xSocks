@@ -14,6 +14,9 @@
 #include "xTproxy.h"
 
 
+int verbose;
+uint16_t idle_timeout;
+
 static int daemon_mode = 1;
 static int concurrency = 0;
 static int log_level = LOG_INFO;

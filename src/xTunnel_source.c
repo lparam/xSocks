@@ -10,6 +10,9 @@
 #include "xTunnel.h"
 
 
+extern int verbose;
+extern enum tunnel_mode mode;
+
 struct source_context *
 new_source() {
     struct source_context *source = malloc(sizeof(*source));

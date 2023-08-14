@@ -19,6 +19,13 @@
 #include "udprelay.h"
 #include "xSocks.h"
 
+
+int acl;
+int verbose;
+uint16_t idle_timeout;
+struct sockaddr_storage bind_addr;
+struct sockaddr_storage server_addr;
+
 static int daemon_mode = 1;
 static int concurrency = 0;
 static int log_level = LOG_INFO;

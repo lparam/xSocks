@@ -153,7 +153,7 @@ libuv: $(OBJTREE)/3rd/libuv/Makefile
 $(OBJTREE)/3rd/libsodium/Makefile: | 3rd/libsodium/autogen.sh
 	$(Q)mkdir -p $(OBJTREE)/3rd/libsodium
 	$(Q)cd 3rd/libsodium && ./autogen.sh
-	$(Q)cd $(OBJTREE)/3rd/libsodium && $(SRCTREE)/3rd/libsodium/configure --host=$(HOST) LDFLAGS= && $(MAKE)
+	$(Q)cd $(OBJTREE)/3rd/libsodium && $(SRCTREE)/3rd/libsodium/configure --host=$(HOST) --disable-ssp CFLAGS=-fno-stack-protector LDFLAGS= && $(MAKE)
 
 libsodium: $(OBJTREE)/3rd/libsodium/Makefile
 

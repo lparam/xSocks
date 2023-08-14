@@ -12,6 +12,9 @@
 #include "xSocksd.h"
 
 
+extern int verbose;
+extern uv_key_t thread_resolver_key;
+
 static void remote_send_cb(uv_write_t *req, int status);
 static void remote_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 

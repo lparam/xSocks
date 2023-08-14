@@ -13,6 +13,10 @@
 #include "xTunnel.h"
 
 
+int verbose;
+enum tunnel_mode mode;
+struct sockaddr_storage target_addr;
+
 static int daemon_mode = 1;
 static int concurrency;
 static int log_level = LOG_INFO;

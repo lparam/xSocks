@@ -22,7 +22,7 @@ struct client_context {
     uint8_t buf[MAX_PACKET_SIZE];
     uint8_t buflen;
     uint8_t cmd;
-    char target_addr[256];
+    char target_addr[262];
 };
 
 struct remote_context {
@@ -60,10 +60,5 @@ void reset_timer(struct remote_context *remote);
 #ifdef ANDROID
 int vpn;
 #endif
-int acl;
-int verbose;
-uint16_t idle_timeout;
-struct sockaddr_storage bind_addr;
-struct sockaddr_storage server_addr;
 
 #endif // for #ifndef XSOCKS_H

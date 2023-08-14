@@ -12,6 +12,9 @@
 #include "xTproxy.h"
 
 
+extern int verbose;
+extern uint16_t idle_timeout;
+
 static void remote_send_cb(uv_write_t *req, int status);
 static void remote_recv_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 static void request_to_server(struct remote_context *remote);

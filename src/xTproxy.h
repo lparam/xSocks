@@ -63,7 +63,4 @@ void reset_timer(struct remote_context *remote);
 
 void close_loop(uv_loop_t *loop);
 
-int verbose;
-uint16_t idle_timeout;
-
 #endif // for #ifndef XTPROXY_H

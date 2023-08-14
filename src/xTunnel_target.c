@@ -10,6 +10,10 @@
 #include "xTunnel.h"
 
 
+extern int verbose;
+extern enum tunnel_mode mode;
+extern struct sockaddr_storage target_addr;
+
 struct target_context *
 new_target() {
     struct target_context *target = malloc(sizeof(*target));

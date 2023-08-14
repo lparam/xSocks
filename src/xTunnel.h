@@ -62,8 +62,4 @@ void connect_to_target(struct target_context *target);
 void forward_to_target(struct target_context *target, uint8_t *buf, int buflen);
 void receive_from_target(struct target_context *target);
 
-int verbose;
-enum tunnel_mode mode;
-struct sockaddr_storage target_addr;
-
 #endif // for #ifndef XTUNNEL_H

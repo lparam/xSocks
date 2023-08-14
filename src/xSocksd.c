@@ -17,6 +17,10 @@
 
 #define MAX_DNS_NUM 4
 
+int verbose;
+uint16_t idle_timeout;
+uv_key_t thread_resolver_key;
+
 static int daemon_mode = 1;
 static int concurrency;
 static int log_level = LOG_INFO;
